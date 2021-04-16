@@ -1,24 +1,22 @@
 ﻿using MelonLoader;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UIExpansionKit.API;
 using System;
 using System.Reflection;
 using System.Linq;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using VRC.Core;
 using VRC.Playables;
-using UnhollowerRuntimeLib;
 
 namespace WorldCleanup
 {
     public class WorldCleanupMod : MelonMod
     {
         private static Dictionary<string, GameObject> s_PlayerList;
+        private static List<Tuple<Light, LightShadows>> s_Lights;
+        private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
 
         private string[] DefaultParameterNames = new string[]
         {
@@ -62,19 +60,23 @@ namespace WorldCleanup
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
-            return;
             /* Get active scene */
             var active_scene = SceneManager.GetActiveScene();
 
+            s_PlayerList = new Dictionary<string, GameObject>();
+            s_Lights = new List<Tuple<Light, LightShadows>>();
+            s_PostProcessingVolumes = new List<Tuple<PostProcessVolume, bool>>();
+
             /* Iterate root objects */
-            foreach (var sceneObject in active_scene.GetRootGameObjects().ToArray<GameObject>())
+            foreach (var sceneObject in active_scene.GetRootGameObjects())
             {
-                /* Disable all light shadows */
-                foreach (var light in sceneObject.GetComponentsInChildren<Light>())
-                {
-                    MelonLogger.Msg(ConsoleColor.Yellow, $"{light.transform.name}: disabling light shadows");
-                    light.shadows = LightShadows.None;
-                }
+                /* Store all lights */
+                foreach (var light in sceneObject.GetComponentsInChildren<Light>(true))
+                    s_Lights.Add(new Tuple<Light, LightShadows>(light, light.shadows));
+
+                /* Store PostProcessVolume's */
+                foreach (var volume in sceneObject.GetComponentsInChildren<PostProcessVolume>(true))
+                    s_PostProcessingVolumes.Add(new Tuple<PostProcessVolume, bool>(volume, volume.gameObject.active));
 
                 /* Other? */
             }
@@ -99,20 +101,49 @@ namespace WorldCleanup
                 _onAvatarInstantiatedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarInstantiatedDelegate>(*(IntPtr*)(void*)intPtr);
             }
 
-            s_PlayerList = new Dictionary<string, GameObject>();
-
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("Player List", PlayerList);
-            // ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("WorldCleanup", WorldCleanupMenu);
+            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("WorldCleanup", WorldCleanupMenu);
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.UserQuickMenu).AddSimpleButton("Avatar Toggles", OnUserQuickMenu);
 
-            MelonLogger.Msg("WorldCleanup ready!");
+            MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
         }
 
         private void WorldCleanupMenu()
         {
-            var settingsMenu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.QuickMenu3Columns);
-            settingsMenu.AddLabel("\n\n  World Cleanup");
-            settingsMenu.AddSimpleButton("Player List", PlayerList);
+            var settingsMenu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+            settingsMenu.AddLabel("\n World Cleanup");
+
+            /* Light shadows */
+            if (s_Lights.Count() > 0) {
+                UiExpansion.AddButtonToggleListItem(settingsMenu, "Shadows", $"Lights: {s_Lights.Count()}", () => {
+                    var shadows_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                    foreach (var light in s_Lights)
+                        UiExpansion.AddDropdownListItem(shadows_menu, light.Item1.name, typeof(LightShadows), (state) => { light.Item1.shadows = (LightShadows)state; }, (int)light.Item1.shadows);
+                    shadows_menu.AddSimpleButton("Back", WorldCleanupMenu);
+                    shadows_menu.Show();
+                }, (restore) => {
+                    foreach (var light in s_Lights)
+                        light.Item1.shadows = restore ? light.Item2 : LightShadows.None;
+                }, s_Lights.Where(o => o.Item1.shadows != LightShadows.None).Count() > 0);
+            } else {
+                settingsMenu.AddLabel("No lights found on this map");
+            }
+
+            /* Post Processing */
+            if (s_PostProcessingVolumes.Count() > 0) {
+                UiExpansion.AddButtonToggleListItem(settingsMenu, "Post Processing", $"Volumes: {s_PostProcessingVolumes.Count()}", () => {
+                    var pp_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                    foreach (var volume in s_PostProcessingVolumes)
+                        UiExpansion.AddToggleListItem(pp_menu, volume.Item1.name, (state) => { volume.Item1.gameObject.active = state; }, volume.Item1.gameObject.active);
+                    pp_menu.AddSimpleButton("Back", WorldCleanupMenu);
+                    pp_menu.Show();
+                }, (restore) => {
+                    foreach (var volume in s_PostProcessingVolumes)
+                        volume.Item1.gameObject.active = restore ? volume.Item2 : false;
+                }, s_PostProcessingVolumes.Where(o => o.Item1.gameObject.active).Count() > 0);
+            } else {
+                settingsMenu.AddLabel("No Post Processing found on this map");
+            }
 
             settingsMenu.Show();
         }

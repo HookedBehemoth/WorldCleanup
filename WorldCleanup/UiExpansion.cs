@@ -2,22 +2,21 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UIExpansionKit.API;
+using Il2CppSystem.Collections.Generic;
 
 namespace WorldCleanup
 {
     class UiExpansion
     {
-        private static AssetBundle s_AssetBundle;
-        public static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle;
+        public static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
 
         public static void LoadUiObjects()
         {
-            s_AssetBundle = Assets.LoadFromAssembly("WorldCleanup.mod.assetbundle");
-
-            IntChanger = Assets.LoadGameObject(s_AssetBundle, "Assets/IntChanger.prefab");
-            FloatSlider = Assets.LoadGameObject(s_AssetBundle, "Assets/FloatSlider.prefab");
-            ButtonToggleItem = Assets.LoadGameObject(s_AssetBundle, "Assets/ButtonToggleItem.prefab");
-            ComponentToggle = Assets.LoadGameObject(s_AssetBundle, "Assets/ComponentToggle.prefab");
+            IntChanger = Assets.LoadGameObject("Assets/UI/IntChanger.prefab");
+            FloatSlider = Assets.LoadGameObject("Assets/UI/FloatSlider.prefab");
+            ButtonToggleItem = Assets.LoadGameObject("Assets/UI/ButtonToggleItem.prefab");
+            ComponentToggle = Assets.LoadGameObject("Assets/UI/ComponentToggle.prefab");
+            DropdownListItem = Assets.LoadGameObject("Assets/UI/DropDown.prefab");
         }
 
         public static void AddIntListItem(ICustomShowableLayoutedMenu list, string name, Action<int> cb, int value = 0)
@@ -81,6 +80,22 @@ namespace WorldCleanup
                 var toggle = obj.transform.GetChild(2).GetComponent<Toggle>();
                 toggle.isOn = initial_state;
                 toggle.onValueChanged.AddListener(on_toggle);
+            });
+        }
+
+        public static void AddDropdownListItem(ICustomShowableLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state)
+        {
+            list.AddCustomButton(DropdownListItem, (GameObject obj) =>
+            {
+                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+
+                var dropdown = obj.transform.GetChild(1).GetComponent<Dropdown>();
+                var options = new List<string> { };
+                foreach (var name in Enum.GetNames(values))
+                    options.Add(name);
+                dropdown.AddOptions(options);
+                dropdown.value = initial_state;
+                dropdown.onValueChanged.AddListener(on_change);
             });
         }
     }
