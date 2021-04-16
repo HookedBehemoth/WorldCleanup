@@ -64,7 +64,7 @@ namespace WorldCleanup
         {
             return;
             /* Get active scene */
-            Scene active_scene = SceneManager.GetActiveScene();
+            var active_scene = SceneManager.GetActiveScene();
 
             /* Iterate root objects */
             foreach (var sceneObject in active_scene.GetRootGameObjects().ToArray<GameObject>())
@@ -153,32 +153,13 @@ namespace WorldCleanup
             {
                 /* Animator Toggle */
                 var animator = avatar.GetComponent<Animator>();
-                UiExpansion.AddToggleListItem(avatarList, "Animator", (state) => { animator.enabled = state; }, () => { return animator.enabled; });
+                /* Note: What in the... */
+                if (animator != null)
+                    UiExpansion.AddToggleListItem(avatarList, "Animator", (state) => { animator.enabled = state; }, animator.enabled);
             }
             {
                 /* Renderer Toggle */
                 var renderers = avatar.transform.GetComponentsInChildren<Renderer>(true);
-
-                void ShowRendererToggleList(string type, IEnumerable<Renderer> list)
-                {
-                    var meshList = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-                    if (type != null)
-                        meshList.AddLabel(type);
-                    foreach (var mesh in list)
-                    {
-                        UiExpansion.AddToggleListItem(meshList, type != null ? mesh.gameObject.name : $"{mesh.GetIl2CppType().Name}: {mesh.gameObject.name}",
-                            (state) => {
-                                mesh.enabled = state;
-                                mesh.gameObject.active = state;
-                            },
-                            () => {
-                                return mesh.enabled && mesh.gameObject.active;
-                            }
-                        );
-                    }
-                    meshList.AddSimpleButton("Back", () => { meshList.Hide(); AvatarList(player_name, close_on_exit); });
-                    meshList.Show();
-                }
 
                 /* Get Skinned Mesh Renderers */
                 var smr = renderers.Where(o => { return o.TryCast<SkinnedMeshRenderer>(); });
@@ -187,27 +168,33 @@ namespace WorldCleanup
                     avatarList.AddSimpleButton($"SkinnedMeshRenderer: {smr.Count()}", () => {
                         var meshList = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                         meshList.AddLabel("SkinnedMeshRenderers");
-                        foreach (var mesh in smr)
+                        foreach (var renderer in smr)
                         {
-                            void on_click(bool state) { mesh.gameObject.active = mesh.enabled = state; }
-                            bool get_initial_state() { return mesh.enabled && mesh.gameObject.active; }
+                            void on_click(bool state) { renderer.gameObject.active = renderer.enabled = state; }
+                            bool initial_state = renderer.enabled && renderer.gameObject.active;
 
-                            var renderer = mesh.Cast<SkinnedMeshRenderer>();
-                            var count = renderer.sharedMesh.blendShapeCount;
+                            var skinned_mesh_renderer = renderer.Cast<SkinnedMeshRenderer>();
+                            var sharedMesh = skinned_mesh_renderer.sharedMesh;
+                            if (sharedMesh == null) {
+                                MelonLogger.Msg(ConsoleColor.Red, $"{player_name} misses mesh on SkinnedMeshRenderer {renderer.gameObject.name}!");
+                                continue;
+                            }
+
+                            var count = sharedMesh.blendShapeCount;
                             if (count > 0)
                             {
                                 UiExpansion.AddButtonToggleListItem(
                                     meshList,
-                                    mesh.gameObject.name,
+                                    renderer.gameObject.name,
                                     $"Blendshapes: {count}",
-                                    () => { BlendShapeList(renderer, player_name, close_on_exit); },
+                                    () => { BlendShapeList(skinned_mesh_renderer, player_name, close_on_exit); },
                                     on_click,
-                                    get_initial_state
+                                    initial_state
                                 );
                             }
                             else
                             {
-                                UiExpansion.AddToggleListItem(meshList, mesh.gameObject.name, on_click, get_initial_state);
+                                UiExpansion.AddToggleListItem(meshList, renderer.gameObject.name, on_click, initial_state);
                             }
                         }
                         meshList.AddSimpleButton("Back", () => { meshList.Hide(); AvatarList(player_name, close_on_exit); });
@@ -215,20 +202,34 @@ namespace WorldCleanup
                     });
                 }
 
+                void ShowGenericRendererToggleList(string type, IEnumerable<Renderer> list)
+                {
+                    var meshList = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                    if (type != null)
+                        meshList.AddLabel(type);
+                    foreach (var mesh in list)
+                    {
+                        var name = type != null ? mesh.gameObject.name : $"{mesh.GetIl2CppType().Name}: {mesh.gameObject.name}";
+                        UiExpansion.AddToggleListItem(meshList, name, (state) => { mesh.enabled = mesh.gameObject.active = state; }, mesh.enabled && mesh.gameObject.active);
+                    }
+                    meshList.AddSimpleButton("Back", () => { meshList.Hide(); AvatarList(player_name, close_on_exit); });
+                    meshList.Show();
+                }
+
                 /* Get Mesh Renderers */
                 var mr = renderers.Where(o => { return o.TryCast<MeshRenderer>(); });
                 if (mr.Count() > 0)
-                    avatarList.AddSimpleButton($"MeshRenderer: {mr.Count()}", () => { ShowRendererToggleList("MeshRenderer", mr); });
+                    avatarList.AddSimpleButton($"MeshRenderer: {mr.Count()}", () => { ShowGenericRendererToggleList("MeshRenderer", mr); });
 
                 /* Get Particle System Renderers */
                 var pr = renderers.Where(o => { return o.TryCast<ParticleSystemRenderer>(); });
                 if (pr.Count() > 0)
-                    avatarList.AddSimpleButton($"ParticleSystemRenderer: {pr.Count()}", () => { ShowRendererToggleList("ParticleSystemRenderer", pr); });
+                    avatarList.AddSimpleButton($"ParticleSystemRenderer: {pr.Count()}", () => { ShowGenericRendererToggleList("ParticleSystemRenderer", pr); });
 
                 /* Other renderers */
                 var remainder = renderers.Where(o => { return !o.TryCast<SkinnedMeshRenderer>() && !o.TryCast<MeshRenderer>() && !o.TryCast<ParticleSystemRenderer>(); });
                 if (remainder.Count() > 0)
-                    avatarList.AddSimpleButton($"Other: {remainder.Count()}", () => { ShowRendererToggleList(null, remainder); });
+                    avatarList.AddSimpleButton($"Other: {remainder.Count()}", () => { ShowGenericRendererToggleList(null, remainder); });
             }
             {
                 /* Parameters */
@@ -239,6 +240,7 @@ namespace WorldCleanup
                 /* Only populated on SDK3 avatars */
                 if (parameters != null)
                 {
+                    /* Note: IL2CPP Dictionary misses "Which" */
                     var filtered = new List<AvatarParameter>();
                     foreach (var param in parameters)
                         if (!DefaultParameterNames.Contains(param.field_Private_String_0))
@@ -255,15 +257,15 @@ namespace WorldCleanup
                                 var type = parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                                 switch (type)
                                 {
-                                    case VRC.Playables.AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                                        UiExpansion.AddToggleListItem(parameterList, name, (state) => { parameter.prop_Boolean_0 = state; }, () => { return parameter.prop_Boolean_0; });
+                                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                                        UiExpansion.AddToggleListItem(parameterList, name, (state) => { parameter.prop_Boolean_0 = state; }, parameter.prop_Boolean_0);
                                         break;
 
-                                    case VRC.Playables.AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
                                         UiExpansion.AddIntListItem(parameterList, name, (value) => { parameter.prop_Int32_1 = value; }, parameter.prop_Int32_1);
                                         break;
 
-                                    case VRC.Playables.AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
                                         UiExpansion.AddFloatListItem(parameterList, name, (value) => { parameter.prop_Single_0 = value; }, parameter.prop_Single_0);
                                         break;
 
@@ -289,9 +291,9 @@ namespace WorldCleanup
             var mesh = renderer.sharedMesh;
             for (int i = 0; i < mesh.blendShapeCount; ++i)
             {
+                /* Note: C# lambda captures by reference so we do this stupid hack */
                 var tmp = i;
-                MelonLogger.Msg($"shapekey: {tmp} {mesh.GetBlendShapeName(tmp)} {renderer.GetBlendShapeWeight(tmp)}");
-                UiExpansion.AddFloatListItem(list, mesh.GetBlendShapeName(i), (value) => { MelonLogger.Msg($"shapekey: {tmp} {value}"); renderer.SetBlendShapeWeight(tmp, value); }, renderer.GetBlendShapeWeight(tmp), 0.0f, 100.0f);
+                UiExpansion.AddFloatListItem(list, mesh.GetBlendShapeName(i), (value) => { renderer.SetBlendShapeWeight(tmp, value); }, renderer.GetBlendShapeWeight(tmp), 0.0f, 100.0f);
             }
             list.AddSimpleButton("Back", () => { list.Hide(); AvatarList(player_name, close_on_exit); });
             list.Show();
@@ -310,7 +312,7 @@ namespace WorldCleanup
                 if (loaded)
                 {
                     GameObject avatar = new GameObject(avatarPtr);
-                    string player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
+                    var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
                     s_PlayerList[player_name] = avatar;
                     MelonLogger.Msg(ConsoleColor.Green, $"Checking {player_name} for coomer shader");
                     WitchHunt(avatar);

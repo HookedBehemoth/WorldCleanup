@@ -57,18 +57,18 @@ namespace WorldCleanup
             });
         }
 
-        public static void AddToggleListItem(ICustomShowableLayoutedMenu list, string name, Action<bool> on_click, Func<bool> get_initial_state)
+        public static void AddToggleListItem(ICustomShowableLayoutedMenu list, string name, Action<bool> on_click, bool initial_state)
         {
             list.AddCustomButton(ComponentToggle, (GameObject obj) =>
             {
                 obj.transform.GetChild(0).GetComponent<Text>().text = name;
                 var toggle = obj.transform.GetChild(1).GetComponent<Toggle>();
-                toggle.isOn = get_initial_state.Invoke();
+                toggle.isOn = initial_state;
                 toggle.onValueChanged.AddListener(on_click);
             });
         }
 
-        public static void AddButtonToggleListItem(ICustomShowableLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> on_toggle, Func<bool> get_initial_state)
+        public static void AddButtonToggleListItem(ICustomShowableLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> on_toggle, bool initial_state)
         {
             list.AddCustomButton(ButtonToggleItem, (GameObject obj) =>
             {
@@ -79,7 +79,7 @@ namespace WorldCleanup
                 button.GetComponent<Button>().onClick.AddListener(on_button);
 
                 var toggle = obj.transform.GetChild(2).GetComponent<Toggle>();
-                toggle.isOn = get_initial_state();
+                toggle.isOn = initial_state;
                 toggle.onValueChanged.AddListener(on_toggle);
             });
         }
