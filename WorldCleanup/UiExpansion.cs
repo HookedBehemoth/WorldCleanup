@@ -4,14 +4,11 @@ using UnityEngine.UI;
 using UIExpansionKit.API;
 using Il2CppSystem.Collections.Generic;
 
-namespace WorldCleanup
-{
-    class UiExpansion
-    {
+namespace WorldCleanup {
+    class UiExpansion {
         public static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
 
-        public static void LoadUiObjects()
-        {
+        public static void LoadUiObjects() {
             IntChanger = Assets.LoadGameObject("Assets/UI/IntChanger.prefab");
             FloatSlider = Assets.LoadGameObject("Assets/UI/FloatSlider.prefab");
             ButtonToggleItem = Assets.LoadGameObject("Assets/UI/ButtonToggleItem.prefab");
@@ -19,17 +16,13 @@ namespace WorldCleanup
             DropdownListItem = Assets.LoadGameObject("Assets/UI/DropDown.prefab");
         }
 
-        public static void AddIntListItem(ICustomShowableLayoutedMenu list, string name, Action<int> cb, int value = 0)
-        {
-            list.AddCustomButton(IntChanger, (GameObject obj) =>
-            {
+        public static void AddIntDiffListItem(ICustomShowableLayoutedMenu list, string name, Action<int> cb, int value = 0) {
+            list.AddCustomButton(IntChanger, (GameObject obj) => {
                 var text_field = obj.transform.GetChild(0).GetComponent<Text>();
                 text_field.text = value.ToString();
 
-                Action ConstructChangeCallback(int diff)
-                {
-                    return () =>
-                    {
+                Action ConstructChangeCallback(int diff) {
+                    return () => {
                         value += diff;
                         text_field.text = value.ToString();
                         cb.Invoke(value);
@@ -43,10 +36,12 @@ namespace WorldCleanup
             });
         }
 
-        public static void AddFloatListItem(ICustomShowableLayoutedMenu list, string name, Action<float> cb, float value = 0.0f, float min = -1.0f, float max = 1.0f)
-        {
-            list.AddCustomButton(FloatSlider, (GameObject obj) =>
-            {
+        public static void AddFloatDiffListItem(ICustomShowableLayoutedMenu list, string name, Action<float> cb, float value = 0) {
+            AddIntDiffListItem(list, name, (val) => cb((float)val), (int)value);
+        }
+
+        public static void AddFloatListItem(ICustomShowableLayoutedMenu list, string name, Action<float> cb, float value = 0.0f, float min = -1.0f, float max = 1.0f) {
+            list.AddCustomButton(FloatSlider, (GameObject obj) => {
                 var slider = obj.transform.GetChild(0).GetComponent<Slider>();
                 slider.minValue = min;
                 slider.maxValue = max;
@@ -56,10 +51,8 @@ namespace WorldCleanup
             });
         }
 
-        public static void AddToggleListItem(ICustomShowableLayoutedMenu list, string name, Action<bool> on_click, bool initial_state)
-        {
-            list.AddCustomButton(ComponentToggle, (GameObject obj) =>
-            {
+        public static void AddToggleListItem(ICustomShowableLayoutedMenu list, string name, Action<bool> on_click, bool initial_state) {
+            list.AddCustomButton(ComponentToggle, (GameObject obj) => {
                 obj.transform.GetChild(0).GetComponent<Text>().text = name;
                 var toggle = obj.transform.GetChild(1).GetComponent<Toggle>();
                 toggle.isOn = initial_state;
@@ -67,10 +60,8 @@ namespace WorldCleanup
             });
         }
 
-        public static void AddButtonToggleListItem(ICustomShowableLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> on_toggle, bool initial_state)
-        {
-            list.AddCustomButton(ButtonToggleItem, (GameObject obj) =>
-            {
+        public static void AddButtonToggleListItem(ICustomShowableLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> on_toggle, bool initial_state) {
+            list.AddCustomButton(ButtonToggleItem, (GameObject obj) => {
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
 
                 var button = obj.transform.GetChild(1);
@@ -83,10 +74,8 @@ namespace WorldCleanup
             });
         }
 
-        public static void AddDropdownListItem(ICustomShowableLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state)
-        {
-            list.AddCustomButton(DropdownListItem, (GameObject obj) =>
-            {
+        public static void AddDropdownListItem(ICustomShowableLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state) {
+            list.AddCustomButton(DropdownListItem, (GameObject obj) => {
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
 
                 var dropdown = obj.transform.GetChild(1).GetComponent<Dropdown>();
