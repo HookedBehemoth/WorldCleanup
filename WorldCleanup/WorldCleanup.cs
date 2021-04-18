@@ -45,6 +45,9 @@ namespace WorldCleanup {
         };
 
         public override void VRChat_OnUiManagerInit() {
+            /* Register Settings */
+            Settings.RegisterSettings();
+
             /* Initialize global asset loader */
             Assets.Initialize();
 
@@ -85,15 +88,27 @@ namespace WorldCleanup {
             /* Iterate root objects */
             foreach (var sceneObject in active_scene.GetRootGameObjects()) {
                 /* Store all lights */
-                foreach (var light in sceneObject.GetComponentsInChildren<Light>(true))
+                foreach (var light in sceneObject.GetComponentsInChildren<Light>(true)) {
                     s_Lights.Add(new Tuple<Light, LightShadows>(light, light.shadows));
 
+                    if (Settings.s_DisableLights)
+                        light.shadows = LightShadows.None;
+                }
+
                 /* Store PostProcessVolume's */
-                foreach (var volume in sceneObject.GetComponentsInChildren<PostProcessVolume>(true))
+                foreach (var volume in sceneObject.GetComponentsInChildren<PostProcessVolume>(true)) {
                     s_PostProcessingVolumes.Add(new Tuple<PostProcessVolume, bool>(volume, volume.gameObject.active));
+
+                    if (Settings.s_DisablePostProcessing)
+                        volume.gameObject.active = false;
+                }
 
                 /* Other? */
             }
+        }
+
+        public override void OnPreferencesSaved() {
+            WorldAudio.OnPreferencesSaved();
         }
 
         private delegate void AvatarInstantiatedDelegate(IntPtr @this, IntPtr avatarPtr, IntPtr avatarDescriptorPtr, bool loaded);
@@ -133,7 +148,8 @@ namespace WorldCleanup {
                 }, (restore) => {
                     foreach (var (light, original) in s_Lights)
                         light.shadows = restore ? original : LightShadows.None;
-                }, s_Lights.Where(o => o.Item1.shadows != LightShadows.None).Count() > 0);
+                    Settings.s_DisableLights = !restore;
+                }, !Settings.s_DisableLights);
             } else {
                 settings_menu.AddLabel("No lights found on this map");
             }
@@ -149,7 +165,8 @@ namespace WorldCleanup {
                 }, (restore) => {
                     foreach (var (volume, original) in s_PostProcessingVolumes)
                         volume.gameObject.active = restore ? original : false;
-                }, s_PostProcessingVolumes.Where(o => o.Item1.gameObject.active).Count() > 0);
+                    Settings.s_DisablePostProcessing = !restore;
+                }, !Settings.s_DisablePostProcessing);
             } else {
                 settings_menu.AddLabel("No Post Processing found on this map");
             }
@@ -171,14 +188,7 @@ namespace WorldCleanup {
             });
 
             /* World Sound */
-            settings_menu.AddSimpleButton("World Sound", () => {
-                var sound_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-
-                WorldAudio.AddSettingList(sound_menu);
-
-                sound_menu.AddSimpleButton("Back", () => { sound_menu.Hide(); MainMenu(); });
-                sound_menu.Show();
-            });
+            WorldAudio.RegisterSettings(settings_menu, MainMenu);
 
             settings_menu.AddSimpleButton("Back", settings_menu.Hide);
 

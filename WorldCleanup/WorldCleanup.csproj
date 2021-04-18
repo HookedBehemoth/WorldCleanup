@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="UiExpansion.cs" />
     <Compile Include="WorldAudio.cs" />
     <Compile Include="WorldCleanup.cs" />

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Reflection;
-using UnhollowerRuntimeLib;
 
 namespace WorldCleanup {
     class Assets {
@@ -19,13 +18,13 @@ namespace WorldCleanup {
             using (var tempStream = new MemoryStream((int)stream.Length)) {
                 stream.CopyTo(tempStream);
 
-                s_AssetBundle = AssetBundle.LoadFromMemory_Internal(tempStream.ToArray(), 0);
+                s_AssetBundle = AssetBundle.LoadFromMemory(tempStream.ToArray());
                 s_AssetBundle.hideFlags |= HideFlags.DontUnloadUnusedAsset;
             }
         }
 
         public static GameObject LoadGameObject(string str) {
-            var objectFromBundle = s_AssetBundle.LoadAsset_Internal(str, Il2CppType.Of<GameObject>()).Cast<GameObject>();
+            var objectFromBundle = s_AssetBundle.LoadAsset<GameObject>(str);
             var newObject = Object.Instantiate(objectFromBundle, s_Parent.transform);
             newObject.SetActive(true);
             newObject.hideFlags |= HideFlags.DontUnloadUnusedAsset;
