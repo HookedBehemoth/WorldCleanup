@@ -47,6 +47,9 @@
     <Reference Include="MelonLoader">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="UIExpansionKit">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\Mods\UIExpansionKit.dll</HintPath>
     </Reference>
@@ -81,6 +84,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Managed\VRCCore-Standalone.dll</HintPath>
     </Reference>
+    <Reference Include="VRCSDK3A, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Managed\VRCSDK3A.dll</HintPath>
+    </Reference>
     <Reference Include="VRCSDKBase, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Managed\VRCSDKBase.dll</HintPath>
@@ -88,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets.cs" />
+    <Compile Include="Avatar.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UiExpansion.cs" />
     <Compile Include="WorldAudio.cs" />

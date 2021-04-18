@@ -4,7 +4,7 @@ using System;
 using MelonLoader;
 
 namespace WorldCleanup {
-    class WorldAudio {
+    internal static class WorldAudio {
 
         private struct AudioConfig {
             public float voice_gain;
@@ -14,9 +14,16 @@ namespace WorldCleanup {
             public bool voice_lowpass;
         };
 
-        private enum Preset { Custom, Quiet };
+        private enum Preset { Custom, Default, Quiet };
 
         private static readonly AudioConfig[] PresetAudioConfigs = new AudioConfig[] {
+            new AudioConfig {
+                voice_gain = 15,
+                voice_distance_far = 25,
+                voice_distance_near = 0,
+                voice_volumetric_radius = 0,
+                voice_lowpass = true,
+            },
             new AudioConfig {
                 voice_gain = 15,
                 voice_distance_far = 10,
@@ -29,7 +36,7 @@ namespace WorldCleanup {
         static bool s_Enabled;
         static AudioConfig s_AudioConfig;
 
-        public static void Initialize() {
+        public static void OnPreferencesLoaded() {
             s_Enabled = Settings.s_EnableAudioOverride;
 
             s_AudioConfig = new AudioConfig {

@@ -18,44 +18,44 @@ namespace WorldCleanup {
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
 
-        private static readonly string[] DefaultParameterNames = new string[]
-        {
-            "Viseme",
-            "GestureLeft",
-            "GestureLeftWeight",
-            "GestureRight",
-            "GestureRightWeight",
-            "TrackingType",
-            "VRMode",
-            "MuteSelf",
-            "Grounded",
-            "AngularY",
-            "Upright",
-            "AFK",
-            "Seated",
-            "InStation",
-            "VelocityX",
-            "VelocityY",
-            "VelocityZ",
-            "IsLocal",
-            "AvatarVersion",
-            "VRCEmote",
-            "VRCFaceBlendH",
-            "VRCFaceBlendV",
-        };
+        static bool s_OnPreferencesLoadedCalled = false;
+
+        public override void OnPreferencesLoaded() {
+            /* As of 0.3.1, Melonloader calls this before any mods are loaded. */
+            if (s_OnPreferencesLoadedCalled)
+                return;
+
+            /* Register settings */
+            Settings.OnPreferencesLoaded();
+
+            /* Load audio settings */
+            WorldAudio.OnPreferencesLoaded();
+
+            /* Load avatar parameters */
+            Parameters.OnPreferencesLoaded();
+
+            s_OnPreferencesLoadedCalled = true;
+        }
+
+        public override void OnPreferencesSaved() {
+            /* Flush avatar parameters */
+            Parameters.OnPreferencesSaved();
+
+            /* Flush audio config */
+            WorldAudio.OnPreferencesSaved();
+
+            /* Flush misc settings */
+            Settings.OnPreferencesSaved();
+        }
 
         public override void VRChat_OnUiManagerInit() {
-            /* Register Settings */
-            Settings.RegisterSettings();
+            OnPreferencesLoaded();
 
             /* Initialize global asset loader */
             Assets.Initialize();
 
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
-
-            /* Load audio settings */
-            WorldAudio.Initialize();
 
             /* Hook into "OnAvatarInstantiated" */
             /* Note: Failure is an unrecoverable error */
@@ -107,10 +107,6 @@ namespace WorldCleanup {
             }
         }
 
-        public override void OnPreferencesSaved() {
-            WorldAudio.OnPreferencesSaved();
-        }
-
         private delegate void AvatarInstantiatedDelegate(IntPtr @this, IntPtr avatarPtr, IntPtr avatarDescriptorPtr, bool loaded);
         private static AvatarInstantiatedDelegate _onAvatarInstantiatedDelegate;
 
@@ -122,6 +118,15 @@ namespace WorldCleanup {
                 var avatar = new GameObject(avatarPtr);
                 var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
                 s_PlayerList[player_name] = avatar;
+
+                var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
+                var parameters = manager.field_Private_AvatarPlayableController_0?
+                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0
+                                       .Values;
+                if (parameters != null) {
+                    var filtered = Parameters.FilterParameters(parameters);
+                    Parameters.ApplyParameters(manager.field_Private_ApiAvatar_1, filtered);
+                }
             }
         }
 
@@ -220,6 +225,9 @@ namespace WorldCleanup {
             if (!avatar)
                 return;
 
+            var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
+            var api_avatar = manager.field_Private_ApiAvatar_1;
+
             var avatar_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
             {
                 /* Animator Toggle */
@@ -297,45 +305,41 @@ namespace WorldCleanup {
             }
             {
                 /* Parameters */
-                var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
-                var parameters = manager.field_Private_AvatarPlayableController_0?
-                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0
-                                       .Values;
+                var controller = manager.field_Private_AvatarPlayableController_0;
 
                 /* Only populated on SDK3 avatars */
-                if (parameters != null) {
-                    /* Note: IL2CPP Dictionary misses "Which" */
-                    var filtered = new List<AvatarParameter>();
-                    foreach (var param in parameters)
-                        if (!DefaultParameterNames.Contains(param.field_Private_String_0))
-                            filtered.Add(param);
+                if (controller != null) {
+                    var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                    var filtered = Parameters.FilterParameters(parameters);
 
                     if (filtered.Count > 0) {
                         avatar_list.AddSimpleButton($"Parameters: {filtered.Count}", () => {
-                            var parameterList = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                            var parameter_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                             foreach (var parameter in filtered) {
                                 var name = parameter.field_Private_String_0;
                                 var type = parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                                 switch (type) {
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                                        UiExpansion.AddToggleListItem(parameterList, name, (state) => { parameter.prop_Boolean_0 = state; }, parameter.prop_Boolean_0);
+                                        UiExpansion.AddToggleListItem(parameter_list, name, (state) => { parameter.prop_Boolean_0 = state; }, parameter.prop_Boolean_0);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                                        UiExpansion.AddIntDiffListItem(parameterList, name, (value) => { parameter.prop_Int32_1 = value; }, parameter.prop_Int32_1);
+                                        UiExpansion.AddIntDiffListItem(parameter_list, name, (value) => { parameter.prop_Int32_1 = value; }, parameter.prop_Int32_1);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                                        UiExpansion.AddFloatListItem(parameterList, name, (value) => { parameter.prop_Single_0 = value; }, parameter.prop_Single_0);
+                                        UiExpansion.AddFloatListItem(parameter_list, name, (value) => { parameter.prop_Single_0 = value; }, parameter.prop_Single_0);
                                         break;
 
                                     default:
-                                        MelonLogger.Msg(System.ConsoleColor.Red, $"Unsupported [{type}]: {name}");
+                                        MelonLogger.Msg(ConsoleColor.Red, $"Unsupported [{type}]: {name}");
                                         break;
                                 }
                             }
-                            parameterList.AddSimpleButton("Back", () => { parameterList.Hide(); AvatarList(player_name, close_on_exit); });
-                            parameterList.Show();
+                            parameter_list.AddSimpleButton("Save", () => { Parameters.StoreParameters(api_avatar, filtered); });
+                            parameter_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, controller.field_Private_VRCAvatarDescriptor_0.expressionParameters); });
+                            parameter_list.AddSimpleButton("Back", () => { parameter_list.Hide(); AvatarList(player_name, close_on_exit); });
+                            parameter_list.Show();
                         });
                     }
                 }

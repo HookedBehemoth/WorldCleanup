@@ -1,4 +1,5 @@
 ﻿using MelonLoader;
+using System.IO;
 
 namespace WorldCleanup {
     internal static class Settings {
@@ -14,7 +15,7 @@ namespace WorldCleanup {
         private const string VoiceVolRadius = "VoiceVolRadius";
         private const string VoiceLowpass = "VoiceLowpass";
 
-        internal static void RegisterSettings() {
+        public static void OnPreferencesLoaded() {
             MelonPreferences.CreateCategory(Category);
 
             MelonPreferences.CreateEntry(Category, DisableLights, false);
@@ -26,6 +27,10 @@ namespace WorldCleanup {
             MelonPreferences.CreateEntry(Category, VoiceNear, 0.0f);
             MelonPreferences.CreateEntry(Category, VoiceVolRadius, 0.0f);
             MelonPreferences.CreateEntry(Category, VoiceLowpass, true);
+        }
+
+        public static void OnPreferencesSaved() {
+            /* ... */
         }
 
         public static bool s_DisableLights {
@@ -66,6 +71,16 @@ namespace WorldCleanup {
         public static bool s_VoiceLowpass {
             get => MelonPreferences.GetEntryValue<bool>(Category, VoiceLowpass);
             set => MelonPreferences.SetEntryValue(Category, VoiceLowpass, value);
+        }
+
+        public static void StoreConfigFile(string file_name, string data) {
+            var file_path = Path.Combine(MelonUtils.UserDataDirectory, file_name);
+            File.WriteAllText(file_path, data);
+        }
+
+        public static string LoadConfigFile(string file_name) {
+            var file_path = Path.Combine(MelonUtils.UserDataDirectory, file_name);
+            return File.ReadAllText(file_path);
         }
     }
 }
