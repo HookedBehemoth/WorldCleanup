@@ -155,10 +155,16 @@ namespace WorldCleanup {
         private static readonly string ConfigFileName = "AvatarParameterConfig.json";
 
         public static void OnPreferencesLoaded() {
-            var config = Settings.LoadConfigFile(ConfigFileName);
-            settings = config != null
-                ? JsonConvert.DeserializeObject<Dictionary<string, AvatarSettings>>(config)
-                : new Dictionary<string, AvatarSettings>();
+            try {
+                var config = Settings.LoadConfigFile(ConfigFileName);
+                settings = JsonConvert.DeserializeObject<Dictionary<string, AvatarSettings>>(config);
+            } catch {
+                MelonLogger.Error("Failed to load parameter config!");
+            }
+
+            /* Note: Newtonsoft Json believes "null" is a valid input */
+            if (settings == null)
+                settings = new Dictionary<string, AvatarSettings>();
         }
 
         public static void OnPreferencesSaved() {
