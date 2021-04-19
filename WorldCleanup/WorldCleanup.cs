@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using VRC.Playables;
 using VRC.SDKBase;
 using VRC;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
@@ -313,6 +314,71 @@ namespace WorldCleanup {
                     var filtered = Parameters.FilterParameters(parameters);
 
                     if (filtered.Count > 0) {
+                        var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
+
+                        avatar_list.AddSimpleButton($"Parameter Menu", () => {
+                            AvatarParameter FindParameter(string name) {
+                                foreach (var parameter in parameters)
+                                    if (parameter.field_Private_String_0 == name)
+                                        return parameter;
+                                return null;
+                            }
+
+                            void ExpressionSubmenu(ICustomShowableLayoutedMenu list, VRCExpressionsMenu expressions_menu) {
+                                foreach (var control in expressions_menu.controls) {
+                                    switch (control.type) {
+                                        case VRCExpressionsMenu.Control.ControlType.Button: {
+                                            var param = FindParameter(control.parameter.name);
+                                            list.AddSimpleButton(control.name, () => { Parameters.SetParameter(param, control.value); });
+                                            break;
+                                        }
+
+                                        case VRCExpressionsMenu.Control.ControlType.Toggle: {
+                                            var param = FindParameter(control.parameter.name);
+                                            float GetCurrent() => Math.Max(Math.Max(param.prop_Boolean_0 ? 1f : 0f, (float)param.prop_Int32_1), param.prop_Single_0);
+                                            var old = GetCurrent();
+                                            UiExpansion.AddToggleListItem(list, control.name, (value) => {
+                                                old = GetCurrent();
+                                                Parameters.SetParameter(param, value ? control.value : old);
+                                            }, old == control.value);
+                                            break;
+                                        }
+
+                                        case VRCExpressionsMenu.Control.ControlType.SubMenu: {
+                                            list.AddSimpleButton(control.name, () => {
+                                                var sub_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+
+                                                ExpressionSubmenu(sub_menu, control.subMenu);
+
+                                                sub_menu.AddSimpleButton("Back", () => { sub_menu.Hide(); AvatarList(player_name, close_on_exit); });
+                                                sub_menu.Show();
+                                            });
+                                            break;
+                                        }
+
+                                        case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
+                                        case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
+                                            list.AddLabel($"\n\n{control.name}: axis puppet unsupported");
+                                            break;
+
+                                        case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
+                                            var param = FindParameter(control.subParameters[0].name);
+                                            UiExpansion.AddFloatListItem(list, control.name, o => Parameters.SetParameter(param, o), param.prop_Single_0, 0, 1);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            var menu_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+
+                            ExpressionSubmenu(menu_list, avatar_descriptor.expressionsMenu);
+
+                            menu_list.AddSimpleButton("Save", () => { Parameters.StoreParameters(api_avatar, filtered); });
+                            menu_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, avatar_descriptor.expressionParameters); });
+                            menu_list.AddSimpleButton("Back", () => { menu_list.Hide(); AvatarList(player_name, close_on_exit); });
+                            menu_list.Show();
+                        });
+
                         avatar_list.AddSimpleButton($"Parameters: {filtered.Count}", () => {
                             var parameter_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                             foreach (var parameter in filtered) {
@@ -337,7 +403,7 @@ namespace WorldCleanup {
                                 }
                             }
                             parameter_list.AddSimpleButton("Save", () => { Parameters.StoreParameters(api_avatar, filtered); });
-                            parameter_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, controller.field_Private_VRCAvatarDescriptor_0.expressionParameters); });
+                            parameter_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, avatar_descriptor.expressionParameters); });
                             parameter_list.AddSimpleButton("Back", () => { parameter_list.Hide(); AvatarList(player_name, close_on_exit); });
                             parameter_list.Show();
                         });

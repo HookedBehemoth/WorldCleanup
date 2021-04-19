@@ -128,6 +128,22 @@ namespace WorldCleanup {
             }
         }
 
+        public static void SetParameter(AvatarParameter parameter, float value) {
+            switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                    parameter.prop_Boolean_0 = value != 0.0f;
+                    break;
+
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                    parameter.prop_Int32_1 = (int)value;
+                    break;
+
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                    parameter.prop_Single_0 = value;
+                    break;
+            }
+        }
+
         public static void ResetParameters(ApiAvatar api_avatar, List<AvatarParameter> parameters, VRCExpressionParameters defaults) {
             var key = api_avatar.id;
 
@@ -135,20 +151,7 @@ namespace WorldCleanup {
                 settings.Remove(key);
 
             foreach (var parameter in parameters) {
-                var value = defaults.FindParameter(parameter.field_Private_String_0).defaultValue;
-                switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
-                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                        parameter.prop_Boolean_0 = value != 0.0f;
-                        break;
-
-                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                        parameter.prop_Int32_1 = (int)value;
-                        break;
-
-                    case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                        parameter.prop_Single_0 = value;
-                        break;
-                }
+                SetParameter(parameter, defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
             }
         }
 
