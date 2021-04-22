@@ -2,9 +2,9 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using VRC.Core;
 using VRC.Playables;
-using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace WorldCleanup {
     internal static class Parameters {
@@ -33,7 +33,7 @@ namespace WorldCleanup {
             "VRCFaceBlendV",
         };
 
-        public static List<AvatarParameter> FilterParameters(Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter>.ValueCollection src) {
+        public static List<AvatarParameter> FilterDefaultParameters(Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter>.ValueCollection src) {
             /* Note: IL2CPP Dictionary misses "Which" */
             var parameters = new List<AvatarParameter>();
             foreach (var param in src)
@@ -84,11 +84,23 @@ namespace WorldCleanup {
             public string name;
             public int version;
             public Dictionary<string, Parameter> parameters;
+            public List<bool> renderers;
         }
 
         static private Dictionary<string, AvatarSettings> settings;
 
-        public static void ApplyParameters(ApiAvatar api_avatar, List<AvatarParameter> parameters) {
+        private static IEnumerable<AvatarParameter> GetAvatarParameters(VRCAvatarManager manager) {
+            var parameters = manager.field_Private_AvatarPlayableController_0?
+                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0
+                                       .Values;
+
+            return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
+        }
+        private static IEnumerable<Renderer> GetAvatarRenderers(VRCAvatarManager manager) {
+            return manager.field_Private_ArrayOf_Renderer_0;
+        }
+
+        public static void ApplyParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
             /* Look up store */
             var key = api_avatar.id;
             if (!settings.ContainsKey(key))
@@ -102,23 +114,29 @@ namespace WorldCleanup {
                 return;
             }
 
-            MelonLogger.Msg($"Applying {config.parameters.Count} parameters to {api_avatar.name}");
+            MelonLogger.Msg($"Applying avatar state to {api_avatar.name}");
 
             /* Apply parameters */
-            foreach (var parameter in parameters) {
+            if (config.parameters != null)
+            foreach (var parameter in GetAvatarParameters(manager))
                 config.parameters[parameter.field_Private_String_0].Apply(parameter);
-            }
+
+            /* Apply Meshes */
+            if (config.renderers != null)
+                foreach (var element in Enumerable.Zip(config.renderers, GetAvatarRenderers(manager), (state, renderer) => new { state, renderer }))
+                    element.renderer.gameObject.active = element.renderer.enabled = element.state;
         }
 
-        public static void StoreParameters(ApiAvatar api_avatar, List<AvatarParameter> parameters) {
-            MelonLogger.Msg($"Storing {parameters.Count} parameters for {api_avatar.name}");
+        public static void StoreParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
+            MelonLogger.Msg($"Storing avatar state for {api_avatar.name}");
 
             var key = api_avatar.id;
 
             var config = new AvatarSettings {
                 name = api_avatar.name,
                 version = api_avatar.version,
-                parameters = parameters.ToDictionary(o => o.field_Private_String_0, o => { var param = new Parameter(); param.Source(o); return param; }),
+                parameters = GetAvatarParameters(manager)?.ToDictionary(o => o.field_Private_String_0, o => { var param = new Parameter(); param.Source(o); return param; }),
+                renderers = GetAvatarRenderers(manager).Select(o => o.gameObject.active && o.enabled).ToList(),
             };
 
             if (settings.ContainsKey(key)) {
@@ -144,13 +162,32 @@ namespace WorldCleanup {
             }
         }
 
-        public static void ResetParameters(ApiAvatar api_avatar, List<AvatarParameter> parameters, VRCExpressionParameters defaults) {
+        public static float GetParameter(AvatarParameter parameter) {
+            switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                    return parameter.prop_Boolean_0 ? 1f : 0f;
+
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                    return (float)parameter.prop_Int32_1;
+
+                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                    return parameter.prop_Single_0;
+
+                default:
+                    return 0f;
+            }
+        }
+
+        public static void ResetParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
             var key = api_avatar.id;
 
             if (settings.ContainsKey(key))
                 settings.Remove(key);
 
-            foreach (var parameter in parameters) {
+            var defaults = manager.field_Private_AvatarPlayableController_0?
+                                  .field_Private_VRCAvatarDescriptor_0
+                                  .expressionParameters;
+            foreach (var parameter in GetAvatarParameters(manager)) {
                 SetParameter(parameter, defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
             }
         }

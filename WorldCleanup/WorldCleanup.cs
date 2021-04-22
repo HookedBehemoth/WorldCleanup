@@ -19,26 +19,7 @@ namespace WorldCleanup {
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
 
-        static bool s_OnPreferencesLoadedCalled = false;
-
-        public override void OnPreferencesLoaded() {
-            /* As of 0.3.1, Melonloader calls this before any mods are loaded. */
-            if (s_OnPreferencesLoadedCalled)
-                return;
-
-            /* Register settings */
-            Settings.OnPreferencesLoaded();
-
-            /* Load audio settings */
-            WorldAudio.OnPreferencesLoaded();
-
-            /* Load avatar parameters */
-            Parameters.OnPreferencesLoaded();
-
-            s_OnPreferencesLoadedCalled = true;
-        }
-
-        public override void OnPreferencesSaved() {
+        public override void OnApplicationQuit() {
             /* Flush avatar parameters */
             Parameters.OnPreferencesSaved();
 
@@ -50,7 +31,14 @@ namespace WorldCleanup {
         }
 
         public override void VRChat_OnUiManagerInit() {
-            OnPreferencesLoaded();
+            /* Register settings */
+            Settings.OnPreferencesLoaded();
+
+            /* Load audio settings */
+            WorldAudio.OnPreferencesLoaded();
+
+            /* Load avatar parameters */
+            Parameters.OnPreferencesLoaded();
 
             /* Initialize global asset loader */
             Assets.Initialize();
@@ -121,13 +109,8 @@ namespace WorldCleanup {
                 s_PlayerList[player_name] = avatar;
 
                 var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
-                var parameters = manager.field_Private_AvatarPlayableController_0?
-                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0
-                                       .Values;
-                if (parameters != null) {
-                    var filtered = Parameters.FilterParameters(parameters);
-                    Parameters.ApplyParameters(manager.field_Private_ApiAvatar_1, filtered);
-                }
+
+                Parameters.ApplyParameters(manager.field_Private_ApiAvatar_1, manager);
             }
         }
 
@@ -239,7 +222,7 @@ namespace WorldCleanup {
             }
             {
                 /* Renderer Toggle */
-                var renderers = avatar.transform.GetComponentsInChildren<Renderer>(true);
+                var renderers = manager.field_Private_ArrayOf_Renderer_0;
 
                 /* Get Skinned Mesh Renderers */
                 var smr = renderers.Where(o => { return o.TryCast<SkinnedMeshRenderer>(); });
@@ -311,7 +294,7 @@ namespace WorldCleanup {
                 /* Only populated on SDK3 avatars */
                 if (controller != null) {
                     var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
-                    var filtered = Parameters.FilterParameters(parameters);
+                    var filtered = Parameters.FilterDefaultParameters(parameters);
 
                     if (filtered.Count > 0) {
                         var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
@@ -334,13 +317,23 @@ namespace WorldCleanup {
                                         }
 
                                         case VRCExpressionsMenu.Control.ControlType.Toggle: {
+                                            /* Note: Horribly broken with state machines */
+                                            /* Consider adding updating toggles/value fields */
                                             var param = FindParameter(control.parameter.name);
-                                            float GetCurrent() => Math.Max(Math.Max(param.prop_Boolean_0 ? 1f : 0f, (float)param.prop_Int32_1), param.prop_Single_0);
-                                            var old = GetCurrent();
+                                            var old = Parameters.GetParameter(param);
+                                            var ticked = old == control.value;
+                                            if (ticked)
+                                                old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                            MelonLogger.Msg($"Storing {old} vs {control.value}");
                                             UiExpansion.AddToggleListItem(list, control.name, (value) => {
-                                                old = GetCurrent();
+                                                if (value) {
+                                                    old = Parameters.GetParameter(param);
+                                                    MelonLogger.Msg($"Storing {old}, setting {control.value}");
+                                                } else {
+                                                    MelonLogger.Msg($"setting {old}");
+                                                }
                                                 Parameters.SetParameter(param, value ? control.value : old);
-                                            }, old == control.value);
+                                            }, ticked);
                                             break;
                                         }
 
@@ -356,16 +349,15 @@ namespace WorldCleanup {
                                             break;
                                         }
 
-                                        case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
-                                        case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
-                                            list.AddLabel($"\n\n{control.name}: axis puppet unsupported");
-                                            break;
-
                                         case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                             var param = FindParameter(control.subParameters[0].name);
                                             UiExpansion.AddFloatListItem(list, control.name, o => Parameters.SetParameter(param, o), param.prop_Single_0, 0, 1);
                                             break;
                                         }
+
+                                        default:
+                                            list.AddLabel($"\n\n{control.name}: {control.type} unsupported");
+                                            break;
                                     }
                                 }
                             }
@@ -373,8 +365,6 @@ namespace WorldCleanup {
 
                             ExpressionSubmenu(menu_list, avatar_descriptor.expressionsMenu);
 
-                            menu_list.AddSimpleButton("Save", () => { Parameters.StoreParameters(api_avatar, filtered); });
-                            menu_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, avatar_descriptor.expressionParameters); });
                             menu_list.AddSimpleButton("Back", () => { menu_list.Hide(); AvatarList(player_name, close_on_exit); });
                             menu_list.Show();
                         });
@@ -402,14 +392,14 @@ namespace WorldCleanup {
                                         break;
                                 }
                             }
-                            parameter_list.AddSimpleButton("Save", () => { Parameters.StoreParameters(api_avatar, filtered); });
-                            parameter_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, filtered, avatar_descriptor.expressionParameters); });
                             parameter_list.AddSimpleButton("Back", () => { parameter_list.Hide(); AvatarList(player_name, close_on_exit); });
                             parameter_list.Show();
                         });
                     }
                 }
             }
+            avatar_list.AddSimpleButton("Save Config", () => { Parameters.StoreParameters(api_avatar, manager); });
+            avatar_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, manager); });
             avatar_list.AddSimpleButton("Back", () => { avatar_list.Hide(); if (!close_on_exit) PlayerList(); });
             avatar_list.Show();
         }
