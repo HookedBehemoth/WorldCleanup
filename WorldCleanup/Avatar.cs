@@ -146,7 +146,7 @@ namespace WorldCleanup {
             }
         }
 
-        public static void SetParameter(AvatarParameter parameter, float value) {
+        public static void SetValue(this AvatarParameter parameter, float value) {
             switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                     parameter.prop_Boolean_0 = value != 0.0f;
@@ -162,7 +162,7 @@ namespace WorldCleanup {
             }
         }
 
-        public static float GetParameter(AvatarParameter parameter) {
+        public static float GetValue(this AvatarParameter parameter) {
             switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                     return parameter.prop_Boolean_0 ? 1f : 0f;
@@ -188,7 +188,7 @@ namespace WorldCleanup {
                                   .field_Private_VRCAvatarDescriptor_0
                                   .expressionParameters;
             foreach (var parameter in GetAvatarParameters(manager)) {
-                SetParameter(parameter, defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
+                parameter.SetValue(defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
             }
         }
 

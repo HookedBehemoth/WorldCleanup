@@ -15,6 +15,8 @@ namespace WorldCleanup {
         private const string VoiceVolRadius = "VoiceVolRadius";
         private const string VoiceLowpass = "VoiceLowpass";
 
+        private const string UpdateInterval = "UpdateInterval";
+
         public static void OnPreferencesLoaded() {
             MelonPreferences.CreateCategory(Category);
 
@@ -27,6 +29,8 @@ namespace WorldCleanup {
             MelonPreferences.CreateEntry(Category, VoiceNear, 0.0f);
             MelonPreferences.CreateEntry(Category, VoiceVolRadius, 0.0f);
             MelonPreferences.CreateEntry(Category, VoiceLowpass, true);
+
+            MelonPreferences.CreateEntry(Category, UpdateInterval, 1f);
         }
 
         public static void OnPreferencesSaved() {
@@ -71,6 +75,11 @@ namespace WorldCleanup {
         public static bool s_VoiceLowpass {
             get => MelonPreferences.GetEntryValue<bool>(Category, VoiceLowpass);
             set => MelonPreferences.SetEntryValue(Category, VoiceLowpass, value);
+        }
+
+        public static float s_UpdateInterval {
+            get => MelonPreferences.GetEntryValue<float>(Category, UpdateInterval);
+            set => MelonPreferences.SetEntryValue(Category, UpdateInterval, value);
         }
 
         public static void StoreConfigFile(string file_name, string data) {

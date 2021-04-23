@@ -75,10 +75,10 @@ namespace WorldCleanup {
         }
 
         public static void RegisterSettings(ICustomShowableLayoutedMenu parent, Action on_exit) {
-            UiExpansion.AddButtonToggleListItem(parent, "World Sound", "Settings", () => {
+            parent.AddButtonToggleListItem("World Sound", "Settings", () => {
                 var sound_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
 
-                UiExpansion.AddDropdownListItem(sound_menu, "Preset", typeof(Preset), (value) => {
+                sound_menu.AddDropdownListItem("Preset", typeof(Preset), (value) => {
                     if ((Preset)value == Preset.Custom)
                         return;
                     s_AudioConfig = PresetAudioConfigs[value - 1];
@@ -89,11 +89,11 @@ namespace WorldCleanup {
                 }, (int)Preset.Custom);
 
                 sound_menu.AddLabel("\n\n Player voice");
-                UiExpansion.AddFloatListItem(sound_menu, "Gain", (val) => { s_AudioConfig.voice_gain = val; }, s_AudioConfig.voice_gain, 0, 24);
-                UiExpansion.AddFloatDiffListItem(sound_menu, "Far", (val) => { s_AudioConfig.voice_distance_far = val; }, s_AudioConfig.voice_distance_far);
-                UiExpansion.AddFloatDiffListItem(sound_menu, "Near", (val) => { s_AudioConfig.voice_distance_near = val; }, s_AudioConfig.voice_distance_near);
-                UiExpansion.AddFloatDiffListItem(sound_menu, "Volumetric Radius", (val) => { s_AudioConfig.voice_volumetric_radius = val; }, s_AudioConfig.voice_volumetric_radius);
-                UiExpansion.AddToggleListItem(sound_menu, "Lowpass", (val) => { s_AudioConfig.voice_lowpass = val; }, s_AudioConfig.voice_lowpass);
+                sound_menu.AddSliderListItem("Gain", (val) => { s_AudioConfig.voice_gain = val; }, () => s_AudioConfig.voice_gain, 0, 24);
+                sound_menu.AddFloatDiffListItem("Far", (val) => { s_AudioConfig.voice_distance_far = val; }, () => s_AudioConfig.voice_distance_far);
+                sound_menu.AddFloatDiffListItem("Near", (val) => { s_AudioConfig.voice_distance_near = val; }, () => s_AudioConfig.voice_distance_near);
+                sound_menu.AddFloatDiffListItem("Volumetric Radius", (val) => { s_AudioConfig.voice_volumetric_radius = val; }, () => s_AudioConfig.voice_volumetric_radius);
+                sound_menu.AddToggleListItem("Lowpass", (val) => { s_AudioConfig.voice_lowpass = val; }, () => s_AudioConfig.voice_lowpass, false);
 
                 sound_menu.AddSimpleButton("Apply to all", ApplySettingsToAll);
 
@@ -101,7 +101,7 @@ namespace WorldCleanup {
                 sound_menu.Show();
             }, (enable) => {
                 s_Enabled = enable;
-            }, s_Enabled);
+            }, () => s_Enabled, false);
         }
 
         public static void OnPlayerJoined(VRCPlayerApi player) {

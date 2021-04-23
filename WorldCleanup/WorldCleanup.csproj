@@ -97,7 +97,9 @@
     <Compile Include="Assets.cs" />
     <Compile Include="Avatar.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="UiExpansion.cs" />
+    <Compile Include="UI\UIEventSyncExtensions.cs" />
+    <Compile Include="UI\UiExpansion.cs" />
+    <Compile Include="UI\Updater.cs" />
     <Compile Include="WorldAudio.cs" />
     <Compile Include="WorldCleanup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

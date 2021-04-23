@@ -12,6 +12,7 @@ using VRC.Playables;
 using VRC.SDKBase;
 using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using WorldCleanup.UI;
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
@@ -128,34 +129,34 @@ namespace WorldCleanup {
 
             /* Light shadows */
             if (s_Lights.Count() > 0) {
-                UiExpansion.AddButtonToggleListItem(settings_menu, "Shadows", $"Lights: {s_Lights.Count()}", () => {
+                settings_menu.AddButtonToggleListItem("Shadows", $"Lights: {s_Lights.Count()}", () => {
                     var shadows_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                     foreach (var light in s_Lights)
-                        UiExpansion.AddDropdownListItem(shadows_menu, light.Item1.name, typeof(LightShadows), (state) => { light.Item1.shadows = (LightShadows)state; }, (int)light.Item1.shadows);
+                        shadows_menu.AddDropdownListItem(light.Item1.name, typeof(LightShadows), (state) => { light.Item1.shadows = (LightShadows)state; }, (int)light.Item1.shadows);
                     shadows_menu.AddSimpleButton("Back", MainMenu);
                     shadows_menu.Show();
                 }, (restore) => {
                     foreach (var (light, original) in s_Lights)
                         light.shadows = restore ? original : LightShadows.None;
                     Settings.s_DisableLights = !restore;
-                }, !Settings.s_DisableLights);
+                }, () => !Settings.s_DisableLights, false);
             } else {
                 settings_menu.AddLabel("No lights found on this map");
             }
 
             /* Post Processing */
             if (s_PostProcessingVolumes.Count() > 0) {
-                UiExpansion.AddButtonToggleListItem(settings_menu, "Post Processing", $"Volumes: {s_PostProcessingVolumes.Count()}", () => {
+                settings_menu.AddButtonToggleListItem("Post Processing", $"Volumes: {s_PostProcessingVolumes.Count()}", () => {
                     var pp_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                     foreach (var volume in s_PostProcessingVolumes)
-                        UiExpansion.AddToggleListItem(pp_menu, volume.Item1.name, (state) => { volume.Item1.gameObject.active = state; }, volume.Item1.gameObject.active);
+                        pp_menu.AddToggleListItem(volume.Item1.name, (state) => { volume.Item1.gameObject.active = state; }, () => volume.Item1.gameObject.active, true);
                     pp_menu.AddSimpleButton("Back", MainMenu);
                     pp_menu.Show();
                 }, (restore) => {
                     foreach (var (volume, original) in s_PostProcessingVolumes)
                         volume.gameObject.active = restore ? original : false;
                     Settings.s_DisablePostProcessing = !restore;
-                }, !Settings.s_DisablePostProcessing);
+                }, () => !Settings.s_DisablePostProcessing, false);
             } else {
                 settings_menu.AddLabel("No Post Processing found on this map");
             }
@@ -166,11 +167,11 @@ namespace WorldCleanup {
 
                 var player_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
 
-                UiExpansion.AddFloatDiffListItem(player_menu, "Jump Impulse", player.SetJumpImpulse, player.GetJumpImpulse());
-                UiExpansion.AddFloatDiffListItem(player_menu, "Run Speed", player.SetRunSpeed, player.GetRunSpeed());
-                UiExpansion.AddFloatDiffListItem(player_menu, "Walk Speed", player.SetWalkSpeed, player.GetWalkSpeed());
-                UiExpansion.AddFloatDiffListItem(player_menu, "Strafe Speed", player.SetStrafeSpeed, player.GetStrafeSpeed());
-                UiExpansion.AddFloatDiffListItem(player_menu, "Gravity Strength", player.SetGravityStrength, player.GetGravityStrength());
+                player_menu.AddFloatDiffListItem("Jump Impulse", player.SetJumpImpulse, player.GetJumpImpulse);
+                player_menu.AddFloatDiffListItem("Run Speed", player.SetRunSpeed, player.GetRunSpeed);
+                player_menu.AddFloatDiffListItem("Walk Speed", player.SetWalkSpeed, player.GetWalkSpeed);
+                player_menu.AddFloatDiffListItem("Strafe Speed", player.SetStrafeSpeed, player.GetStrafeSpeed);
+                player_menu.AddFloatDiffListItem("Gravity Strength", player.SetGravityStrength, player.GetGravityStrength);
 
                 player_menu.AddSimpleButton("Back", () => { player_menu.Hide(); MainMenu(); });
                 player_menu.Show();
@@ -178,6 +179,9 @@ namespace WorldCleanup {
 
             /* World Sound */
             WorldAudio.RegisterSettings(settings_menu, MainMenu);
+
+            /* Update interval */
+            settings_menu.AddSliderListItem("Update interval (0-3s)", (value) => { Updater.s_UpdateInterval = Settings.s_UpdateInterval = value; }, () => Updater.s_UpdateInterval, 0f, 3f);
 
             settings_menu.AddSimpleButton("Back", settings_menu.Hide);
 
@@ -218,7 +222,7 @@ namespace WorldCleanup {
                 var animator = avatar.GetComponent<Animator>();
                 /* Note: What in the... */
                 if (animator != null)
-                    UiExpansion.AddToggleListItem(avatar_list, "Animator", (state) => { animator.enabled = state; }, animator.enabled);
+                    avatar_list.AddToggleListItem("Animator", (state) => { animator.enabled = state; }, () => animator.enabled, false);
             }
             {
                 /* Renderer Toggle */
@@ -231,8 +235,8 @@ namespace WorldCleanup {
                         var mesh_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                         mesh_list.AddLabel("SkinnedMeshRenderers");
                         foreach (var renderer in smr) {
-                            void on_click(bool state) { renderer.gameObject.active = renderer.enabled = state; }
-                            var initial_state = renderer.enabled && renderer.gameObject.active;
+                            void set_value(bool state) { renderer.gameObject.active = renderer.enabled = state; }
+                            bool get_value() { return renderer.enabled && renderer.gameObject.active; };
 
                             var skinned_mesh_renderer = renderer.Cast<SkinnedMeshRenderer>();
                             var shared_mesh = skinned_mesh_renderer.sharedMesh;
@@ -243,16 +247,16 @@ namespace WorldCleanup {
 
                             var count = shared_mesh.blendShapeCount;
                             if (count > 0) {
-                                UiExpansion.AddButtonToggleListItem(
-                                    mesh_list,
+                                mesh_list.AddButtonToggleListItem(
                                     renderer.gameObject.name,
                                     $"Blendshapes: {count}",
                                     () => { BlendShapeList(skinned_mesh_renderer, mesh_list); },
-                                    on_click,
-                                    initial_state
+                                    set_value,
+                                    get_value,
+                                    true
                                 );
                             } else {
-                                UiExpansion.AddToggleListItem(mesh_list, renderer.gameObject.name, on_click, initial_state);
+                                mesh_list.AddToggleListItem(renderer.gameObject.name, set_value, get_value, true);
                             }
                         }
                         mesh_list.AddSimpleButton("Back", () => { mesh_list.Hide(); AvatarList(player_name, close_on_exit); });
@@ -266,7 +270,7 @@ namespace WorldCleanup {
                         mesh_list.AddLabel(type);
                     foreach (var mesh in list) {
                         var name = type != null ? mesh.gameObject.name : $"{mesh.GetIl2CppType().Name}: {mesh.gameObject.name}";
-                        UiExpansion.AddToggleListItem(mesh_list, name, (state) => { mesh.enabled = mesh.gameObject.active = state; }, mesh.enabled && mesh.gameObject.active);
+                        mesh_list.AddToggleListItem(name, (state) => { mesh.enabled = mesh.gameObject.active = state; }, () => mesh.enabled && mesh.gameObject.active, true);
                     }
                     mesh_list.AddSimpleButton("Back", () => { mesh_list.Hide(); AvatarList(player_name, close_on_exit); });
                     mesh_list.Show();
@@ -310,30 +314,25 @@ namespace WorldCleanup {
                             void ExpressionSubmenu(ICustomShowableLayoutedMenu list, VRCExpressionsMenu expressions_menu) {
                                 foreach (var control in expressions_menu.controls) {
                                     switch (control.type) {
-                                        case VRCExpressionsMenu.Control.ControlType.Button: {
-                                            var param = FindParameter(control.parameter.name);
-                                            list.AddSimpleButton(control.name, () => { Parameters.SetParameter(param, control.value); });
-                                            break;
-                                        }
-
+                                        case VRCExpressionsMenu.Control.ControlType.Button:
+                                        /* Note: Action Menu "Buttons" are actually Toggles */
+                                        /*       that set on press and revert on release.   */
+                                        /* TODO: Add proper implementation.                 */
                                         case VRCExpressionsMenu.Control.ControlType.Toggle: {
-                                            /* Note: Horribly broken with state machines */
-                                            /* Consider adding updating toggles/value fields */
                                             var param = FindParameter(control.parameter.name);
-                                            var old = Parameters.GetParameter(param);
-                                            var ticked = old == control.value;
-                                            if (ticked)
-                                                old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
-                                            MelonLogger.Msg($"Storing {old} vs {control.value}");
-                                            UiExpansion.AddToggleListItem(list, control.name, (value) => {
+                                            var old = param.GetValue();
+                                            void set_value(bool value) {
                                                 if (value) {
-                                                    old = Parameters.GetParameter(param);
-                                                    MelonLogger.Msg($"Storing {old}, setting {control.value}");
+                                                    old = param.GetValue();
+                                                    param.SetValue(control.value);
                                                 } else {
-                                                    MelonLogger.Msg($"setting {old}");
+                                                    param.SetValue(old);
                                                 }
-                                                Parameters.SetParameter(param, value ? control.value : old);
-                                            }, ticked);
+                                            }
+                                            bool get_value() { return param.GetValue() == control.value; }
+                                            if (get_value())
+                                                old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                            list.AddToggleListItem(control.name, set_value, get_value, true);
                                             break;
                                         }
 
@@ -343,7 +342,7 @@ namespace WorldCleanup {
 
                                                 ExpressionSubmenu(sub_menu, control.subMenu);
 
-                                                sub_menu.AddSimpleButton("Back", () => { sub_menu.Hide(); AvatarList(player_name, close_on_exit); });
+                                                sub_menu.AddSimpleButton("Back", () => { sub_menu.Hide(); list.Show(); });
                                                 sub_menu.Show();
                                             });
                                             break;
@@ -351,7 +350,7 @@ namespace WorldCleanup {
 
                                         case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                             var param = FindParameter(control.subParameters[0].name);
-                                            UiExpansion.AddFloatListItem(list, control.name, o => Parameters.SetParameter(param, o), param.prop_Single_0, 0, 1);
+                                            list.AddSliderListItem(control.name, param.SetValue, param.GetValue, 0, 1);
                                             break;
                                         }
 
@@ -376,15 +375,15 @@ namespace WorldCleanup {
                                 var type = parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                                 switch (type) {
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                                        UiExpansion.AddToggleListItem(parameter_list, name, (state) => { parameter.prop_Boolean_0 = state; }, parameter.prop_Boolean_0);
+                                        parameter_list.AddToggleListItem(name, (state) => { parameter.prop_Boolean_0 = state; }, () => parameter.prop_Boolean_0, true);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                                        UiExpansion.AddIntDiffListItem(parameter_list, name, (value) => { parameter.prop_Int32_1 = value; }, parameter.prop_Int32_1);
+                                        parameter_list.AddIntDiffListItem(name, (value) => { parameter.prop_Int32_1 = value; }, () => parameter.prop_Int32_1);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                                        UiExpansion.AddFloatListItem(parameter_list, name, (value) => { parameter.prop_Single_0 = value; }, parameter.prop_Single_0);
+                                        parameter_list.AddSliderListItem(name, (value) => { parameter.prop_Single_0 = value; }, () => parameter.prop_Single_0);
                                         break;
 
                                     default:
@@ -409,7 +408,7 @@ namespace WorldCleanup {
 
             var shared_mesh = renderer.sharedMesh;
             foreach (var i in Enumerable.Range(0, shared_mesh.blendShapeCount))
-                UiExpansion.AddFloatListItem(blendshape_list, shared_mesh.GetBlendShapeName(i), (value) => { renderer.SetBlendShapeWeight(i, value); }, renderer.GetBlendShapeWeight(i), 0.0f, 100.0f);
+                blendshape_list.AddSliderListItem(shared_mesh.GetBlendShapeName(i), (value) => { renderer.SetBlendShapeWeight(i, value); }, () => renderer.GetBlendShapeWeight(i), 0f, 100f);
 
             blendshape_list.AddSimpleButton("Back", () => { blendshape_list.Hide(); parent.Show(); });
             blendshape_list.Show();
