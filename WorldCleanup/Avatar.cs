@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -62,17 +63,19 @@ namespace WorldCleanup {
             public void Apply(AvatarParameter dst) {
                 switch (type) {
                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                        dst.prop_Boolean_0 = val_bool;
+                        dst.SetBoolProperty(val_bool);
                         break;
 
                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                        dst.prop_Int32_1 = val_int;
+                        dst.SetIntProperty(val_int);
                         break;
 
                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                        dst.prop_Single_0 = val_float;
+                        dst.SetFloatProperty(val_float);
                         break;
                 }
+
+                dst.Lock();
             }
             public AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique type;
             public int val_int = 0;
@@ -89,14 +92,15 @@ namespace WorldCleanup {
 
         static private Dictionary<string, AvatarSettings> settings;
 
-        private static IEnumerable<AvatarParameter> GetAvatarParameters(VRCAvatarManager manager) {
+        public static IEnumerable<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager) {
             var parameters = manager.field_Private_AvatarPlayableController_0?
                                        .field_Private_Dictionary_2_Int32_AvatarParameter_0
                                        .Values;
 
             return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
         }
-        private static IEnumerable<Renderer> GetAvatarRenderers(VRCAvatarManager manager) {
+
+        public static IEnumerable<Renderer> GetAvatarRenderers(this VRCAvatarManager manager) {
             return manager.field_Private_ArrayOf_Renderer_0;
         }
 
@@ -118,12 +122,12 @@ namespace WorldCleanup {
 
             /* Apply parameters */
             if (config.parameters != null)
-            foreach (var parameter in GetAvatarParameters(manager))
-                config.parameters[parameter.field_Private_String_0].Apply(parameter);
+                foreach (var parameter in manager.GetAvatarParameters())
+                    config.parameters[parameter.field_Private_String_0].Apply(parameter);
 
             /* Apply Meshes */
             if (config.renderers != null)
-                foreach (var element in Enumerable.Zip(config.renderers, GetAvatarRenderers(manager), (state, renderer) => new { state, renderer }))
+                foreach (var element in Enumerable.Zip(config.renderers, manager.GetAvatarRenderers(), (state, renderer) => new { state, renderer }))
                     element.renderer.gameObject.active = element.renderer.enabled = element.state;
         }
 
@@ -135,8 +139,8 @@ namespace WorldCleanup {
             var config = new AvatarSettings {
                 name = api_avatar.name,
                 version = api_avatar.version,
-                parameters = GetAvatarParameters(manager)?.ToDictionary(o => o.field_Private_String_0, o => { var param = new Parameter(); param.Source(o); return param; }),
-                renderers = GetAvatarRenderers(manager).Select(o => o.gameObject.active && o.enabled).ToList(),
+                parameters = manager.GetAvatarParameters()?.ToDictionary(o => o.field_Private_String_0, o => { var param = new Parameter(); param.Source(o); return param; }),
+                renderers = manager.GetAvatarRenderers().Select(o => o.gameObject.active && o.enabled).ToList(),
             };
 
             if (settings.ContainsKey(key)) {
@@ -144,38 +148,50 @@ namespace WorldCleanup {
             } else {
                 settings.Add(key, config);
             }
+
+            /* Prevent override of changed parameters */
+            foreach (var parameter in manager.GetAvatarParameters())
+                parameter.Lock();
         }
 
+        private static HashSet<IntPtr> s_ParameterOverrideList = new HashSet<IntPtr>();
+
         public static void SetValue(this AvatarParameter parameter, float value) {
+            /* Call original delegate to avoid self MITM */
             switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                    parameter.prop_Boolean_0 = value != 0.0f;
+                    _boolPropertySetterDelegate(parameter.Pointer, value != 0.0f);
                     break;
 
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                    parameter.prop_Int32_1 = (int)value;
+                    _intPropertySetterDelegate(parameter.Pointer, (int)value);
                     break;
 
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                    parameter.prop_Single_0 = value;
+                    _floatPropertySetterDelegate(parameter.Pointer, value);
                     break;
             }
         }
 
         public static float GetValue(this AvatarParameter parameter) {
-            switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
-                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                    return parameter.prop_Boolean_0 ? 1f : 0f;
+            return parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0 switch {
+                AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool => parameter.prop_Boolean_0 ? 1f : 0f,
+                AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int => parameter.prop_Int32_1,
+                AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float => parameter.prop_Single_0,
+                _ => 0f,
+            };
+        }
 
-                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                    return (float)parameter.prop_Int32_1;
+        public static void SetBoolProperty(this AvatarParameter parameter, bool value) {
+            _boolPropertySetterDelegate(parameter.Pointer, value);
+        }
 
-                case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                    return parameter.prop_Single_0;
+        public static void SetIntProperty(this AvatarParameter parameter, int value) {
+            _intPropertySetterDelegate(parameter.Pointer, value);
+        }
 
-                default:
-                    return 0f;
-            }
+        public static void SetFloatProperty(this AvatarParameter parameter, float value) {
+            _floatPropertySetterDelegate(parameter.Pointer, value);
         }
 
         public static void ResetParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
@@ -187,9 +203,71 @@ namespace WorldCleanup {
             var defaults = manager.field_Private_AvatarPlayableController_0?
                                   .field_Private_VRCAvatarDescriptor_0
                                   .expressionParameters;
-            foreach (var parameter in GetAvatarParameters(manager)) {
+            foreach (var parameter in manager.GetAvatarParameters()) {
                 parameter.SetValue(defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
+                parameter.Unlock();
             }
+        }
+
+        public static void Unlock(this AvatarParameter parameter) {
+            /* Reenable parameter override */
+            if (s_ParameterOverrideList.Contains(parameter.Pointer))
+                s_ParameterOverrideList.Remove(parameter.Pointer);
+        }
+
+        public static void Lock(this AvatarParameter parameter) {
+            /* Disable override parameters */
+            if (!s_ParameterOverrideList.Contains(parameter.Pointer))
+                s_ParameterOverrideList.Add(parameter.Pointer);
+        }
+
+        private static bool ShouldIgnoreSetter(IntPtr parameter) {
+            return s_ParameterOverrideList.Contains(parameter);
+        }
+
+        internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
+        internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
+
+        internal static void BoolPropertySetter(IntPtr @this, bool value) {
+            /* Block manually overwritten parameters */
+            var param = new AvatarParameter(@this);
+            if (param.prop_Boolean_0 != value && ShouldIgnoreSetter(@this)) {
+                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
+                return;
+            }
+
+            /* Invoke original function pointer */
+            _boolPropertySetterDelegate(@this, value);
+        }
+
+        internal delegate void IntPropertySetterDelegate(IntPtr @this, int value);
+        internal static IntPropertySetterDelegate _intPropertySetterDelegate;
+
+        internal static void IntPropertySetter(IntPtr @this, int value) {
+            /* Block manually overwritten parameters */
+            var param = new AvatarParameter(@this);
+            if (param.prop_Int32_1 != value && ShouldIgnoreSetter(@this)) {
+                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
+                return;
+            }
+
+            /* Invoke original function pointer */
+            _intPropertySetterDelegate(@this, value);
+        }
+
+        internal delegate void FloatPropertySetterDelegate(IntPtr @this, float value);
+        internal static FloatPropertySetterDelegate _floatPropertySetterDelegate;
+
+        internal static void FloatPropertySetter(IntPtr @this, float value) {
+            /* Block manually overwritten parameters */
+            var param = new AvatarParameter(@this);
+            if (param.prop_Single_0 != value && ShouldIgnoreSetter(@this)) {
+                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
+                return;
+            }
+
+            /* Invoke original function pointer */
+            _floatPropertySetterDelegate(@this, value);
         }
 
         private static readonly string ConfigFileName = "AvatarParameterConfig.json";

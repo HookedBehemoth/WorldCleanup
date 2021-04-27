@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -65,6 +65,21 @@ namespace WorldCleanup {
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.UserQuickMenu).AddSimpleButton("Avatar Toggles", OnUserQuickMenu);
 
             MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
+
+            /* Experimental: Hook into setter for parameter properties */
+            unsafe {
+                var param_prop_bool_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                MelonUtils.NativeHookAttach(param_prop_bool_set, new Action<IntPtr, bool>(Parameters.BoolPropertySetter).Method.MethodHandle.GetFunctionPointer());
+                Parameters._boolPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.BoolPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_bool_set);
+
+                var param_prop_int_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                MelonUtils.NativeHookAttach(param_prop_int_set, new Action<IntPtr, int>(Parameters.IntPropertySetter).Method.MethodHandle.GetFunctionPointer());
+                Parameters._intPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.IntPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_int_set);
+
+                var param_prop_float_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(Parameters.FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
+                Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
+            }
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) {
@@ -304,6 +319,10 @@ namespace WorldCleanup {
                         var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
 
                         avatar_list.AddSimpleButton($"Parameter Menu", () => {
+                            /* Unlock all parameters to prevent state machine tomfoolery */
+                            foreach (var parameter in parameters)
+                                parameter.Unlock();
+
                             AvatarParameter FindParameter(string name) {
                                 foreach (var parameter in parameters)
                                     if (parameter.field_Private_String_0 == name)
@@ -369,21 +388,25 @@ namespace WorldCleanup {
                         });
 
                         avatar_list.AddSimpleButton($"Parameters: {filtered.Count}", () => {
+                            /* Unlock all parameters to prevent state machine tomfoolery */
+                            foreach (var parameter in parameters)
+                                parameter.Unlock();
+
                             var parameter_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                             foreach (var parameter in filtered) {
                                 var name = parameter.field_Private_String_0;
                                 var type = parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                                 switch (type) {
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                                        parameter_list.AddToggleListItem(name, (state) => { parameter.prop_Boolean_0 = state; }, () => parameter.prop_Boolean_0, true);
+                                        parameter_list.AddToggleListItem(name, parameter.SetBoolProperty, () => parameter.prop_Boolean_0, true);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                                        parameter_list.AddIntDiffListItem(name, (value) => { parameter.prop_Int32_1 = value; }, () => parameter.prop_Int32_1);
+                                        parameter_list.AddIntDiffListItem(name, parameter.SetIntProperty, () => parameter.prop_Int32_1);
                                         break;
 
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                                        parameter_list.AddSliderListItem(name, (value) => { parameter.prop_Single_0 = value; }, () => parameter.prop_Single_0);
+                                        parameter_list.AddSliderListItem(name, parameter.SetFloatProperty, () => parameter.prop_Single_0);
                                         break;
 
                                     default:
