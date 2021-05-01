@@ -127,6 +127,10 @@ namespace WorldCleanup {
                 var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
 
                 Parameters.ApplyParameters(manager.field_Private_ApiAvatar_1, manager);
+
+                var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
+                var parameters = manager.GetAvatarParameters();
+                destroy_listener.OnDestroyed += () => { foreach (var parameter in parameters) parameter.Unlock(); };
             }
         }
 
