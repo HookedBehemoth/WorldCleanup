@@ -41,9 +41,6 @@ namespace WorldCleanup {
             /* Load avatar parameters */
             Parameters.OnPreferencesLoaded();
 
-            /* Initialize global asset loader */
-            Assets.Initialize();
-
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
 

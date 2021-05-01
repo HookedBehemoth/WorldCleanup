@@ -2,22 +2,65 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UIExpansionKit.API;
-using Il2CppSystem.Collections.Generic;
 using UnhollowerRuntimeLib;
 using WorldCleanup.UI;
+using MelonLoader;
+using System.Collections;
 
 namespace WorldCleanup {
     static class UiExpansion {
-        public static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
+        private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
 
         public static void LoadUiObjects() {
             ClassInjector.RegisterTypeInIl2Cpp<Updater>();
 
-            IntChanger = Assets.LoadGameObject("Assets/UI/IntChanger.prefab");
-            FloatSlider = Assets.LoadGameObject("Assets/UI/FloatSlider.prefab");
-            ButtonToggleItem = Assets.LoadGameObject("Assets/UI/ButtonToggleItem.prefab");
-            ComponentToggle = Assets.LoadGameObject("Assets/UI/ComponentToggle.prefab");
-            DropdownListItem = Assets.LoadGameObject("Assets/UI/DropDown.prefab");
+            /* Load async to avoid race with UI Expansion kit */
+            MelonCoroutines.Start(LoadUiElements());
+        }
+
+        private static IEnumerator LoadUiElements() {
+            /* Get UIExpansionKit GameObject parent */
+            GameObject parent = null;
+            do {
+                yield return null;
+                parent = GameObject.Find("UserInterface/QuickMenu/ModUiPreloadedBundleContents");
+            } while (parent == null);
+
+            /* Copy font reference */
+            var noto_sans = parent.GetComponentInChildren<Text>()?.font;
+
+            /* Load Asset bundle */
+            AssetBundle asset_bundle = null;
+            using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WorldCleanup.mod.assetbundle"))
+            using (var tempStream = new System.IO.MemoryStream((int)stream.Length)) {
+                stream.CopyTo(tempStream);
+
+                asset_bundle = AssetBundle.LoadFromMemory(tempStream.ToArray());
+                asset_bundle.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+            }
+
+            GameObject LoadUiElement(string str) {
+                var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
+
+                /* Apply "Noto Sans Regular" font to each Text */
+                foreach (var text in bundle_object.GetComponentsInChildren<Text>()) {
+                    MelonLogger.Msg($"patching text {text.name}");
+                    text.font = noto_sans;
+                }
+
+                /* Attach it to QuickMenu to inherit render queue changes */
+                var instantiated_object = UnityEngine.Object.Instantiate(bundle_object, parent.transform);
+                instantiated_object.SetActive(true);
+                instantiated_object.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+
+                return instantiated_object;
+            }
+
+            IntChanger = LoadUiElement("Assets/UI/IntChanger.prefab");
+            FloatSlider = LoadUiElement("Assets/UI/FloatSlider.prefab");
+            ButtonToggleItem = LoadUiElement("Assets/UI/ButtonToggleItem.prefab");
+            ComponentToggle = LoadUiElement("Assets/UI/ComponentToggle.prefab");
+            DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
         }
 
         public static void AddIntDiffListItem(this ICustomShowableLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
@@ -117,7 +160,7 @@ namespace WorldCleanup {
 
                 /* Configure Enum Dropdown */
                 var dropdown = obj.transform.GetChild(1).GetComponent<Dropdown>();
-                var options = new List<string> { };
+                var options = new Il2CppSystem.Collections.Generic.List<string> { };
                 foreach (var name in Enum.GetNames(values))
                     options.Add(name);
                 dropdown.AddOptions(options);
