@@ -81,7 +81,16 @@ namespace WorldCleanup {
                 /* Filter inactive avatar objects */
                 s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
 
-                foreach (var entry in s_PlayerList) {
+                /* Order by physical distance to camera */
+                var query = from player in s_PlayerList
+                            orderby Vector3.Distance(player.Value.transform.position, Camera.main.transform.position)
+                            select player;
+
+                /* Only allow a max of 10 players there at once */
+                /* Note: Consider adding multiple pages */
+                var remaining_count = 10;
+
+                foreach (var entry in query) {
                     var manager = entry.Value.transform.GetComponentInParent<VRCAvatarManager>();
                     var controller = manager.field_Private_AvatarPlayableController_0;
                     if (controller == null)
@@ -159,7 +168,7 @@ namespace WorldCleanup {
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                         var param = FindParameter(control.subParameters[0].name);
-                                        AMAPI.AddRadialPedalToSubMenu(control.name, (value) => { param.SetValue(value / 100); }, startingValue: param.GetValue() * 100, icon: control.icon);
+                                        AMAPI.AddRadialPedalToSubMenu(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon);
                                         break;
                                     }
                                 }
@@ -171,6 +180,9 @@ namespace WorldCleanup {
 
                         ExpressionSubmenu(avatar_descriptor.expressionsMenu);
                     }));
+
+                    if (--remaining_count == 0)
+                        break;
                 }
             });
 
