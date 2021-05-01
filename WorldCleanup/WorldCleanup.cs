@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -13,6 +13,7 @@ using VRC.SDKBase;
 using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
+using ActionMenuApi;
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
@@ -61,9 +62,7 @@ namespace WorldCleanup {
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("WorldCleanup", MainMenu);
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.UserQuickMenu).AddSimpleButton("Avatar Toggles", OnUserQuickMenu);
 
-            MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
-
-            /* Experimental: Hook into setter for parameter properties */
+            /* Hook into setter for parameter properties */
             unsafe {
                 var param_prop_bool_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_bool_set, new Action<IntPtr, bool>(Parameters.BoolPropertySetter).Method.MethodHandle.GetFunctionPointer());
@@ -77,6 +76,105 @@ namespace WorldCleanup {
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(Parameters.FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
+
+            AMAPI.AddSubMenuToMenu(ActionMenuPageType.Main, "World Cleanup", () => {
+                /* Filter inactive avatar objects */
+                s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
+
+                foreach (var entry in s_PlayerList) {
+                    var manager = entry.Value.transform.GetComponentInParent<VRCAvatarManager>();
+                    var controller = manager.field_Private_AvatarPlayableController_0;
+                    if (controller == null)
+                        continue;
+
+                    AMAPI.AddSubMenuToSubMenu(entry.Key, (Action)(() => {
+                        var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                        var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
+
+                        /* Unlock all parameters to prevent state machine tomfoolery */
+                        foreach (var parameter in parameters)
+                            parameter.Unlock();
+
+                        AvatarParameter FindParameter(string name) {
+                            foreach (var parameter in parameters)
+                                if (parameter.field_Private_String_0 == name)
+                                    return parameter;
+                            return null;
+                        }
+
+                        void ExpressionSubmenu(VRCExpressionsMenu expressions_menu) {
+                            foreach (var control in expressions_menu.controls) {
+                                try {
+                                switch (control.type) {
+                                    case VRCExpressionsMenu.Control.ControlType.Button:
+                                    /* Note: Action Menu "Buttons" are actually Toggles */
+                                    /*       that set on press and revert on release.   */
+                                    /* TODO: Add proper implementation.                 */
+                                    case VRCExpressionsMenu.Control.ControlType.Toggle: {
+                                        var param = FindParameter(control.parameter.name);
+                                        var old = param.GetValue();
+                                        void set_value(bool value) {
+                                            if (value) {
+                                                old = param.GetValue();
+                                                param.SetValue(control.value);
+                                            } else {
+                                                param.SetValue(old);
+                                            }
+                                        }
+                                        bool get_value() { return param.GetValue() == control.value; }
+                                        if (get_value())
+                                            old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        AMAPI.AddTogglePedalToSubMenu(control.name, get_value(), set_value, icon: control.icon);
+                                        break;
+                                    }
+
+                                    case VRCExpressionsMenu.Control.ControlType.SubMenu: {
+                                        AMAPI.AddSubMenuToSubMenu(control.name, () => { ExpressionSubmenu(control.subMenu); }, icon: control.icon);
+                                        break;
+                                    }
+
+                                    case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet: {
+                                        var horizontal = FindParameter(control.subParameters[0].name);
+                                        var vertical = FindParameter(control.subParameters[1].name);
+                                        AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
+                                            horizontal.SetFloatProperty(value.x);
+                                            vertical.SetFloatProperty(value.y);
+                                        }, icon: control.icon);
+                                        break;
+                                    }
+
+                                    case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet: {
+                                        var up = FindParameter(control.subParameters[0].name);
+                                        var down = FindParameter(control.subParameters[1].name);
+                                        var left = FindParameter(control.subParameters[2].name);
+                                        var right = FindParameter(control.subParameters[3].name);
+                                        AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
+                                            up.SetFloatProperty(Math.Max(0, value.y));
+                                            down.SetFloatProperty(-Math.Min(0, value.y));
+                                            left.SetFloatProperty(Math.Max(0, value.x));
+                                            right.SetFloatProperty(-Math.Min(0, value.x));
+                                        }, icon: control.icon);
+                                        break;
+                                    }
+
+                                    case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
+                                        var param = FindParameter(control.subParameters[0].name);
+                                        AMAPI.AddRadialPedalToSubMenu(control.name, (value) => { param.SetValue(value / 100); }, startingValue: param.GetValue() * 100, icon: control.icon);
+                                        break;
+                                    }
+                                }
+                                } catch (Exception e) {
+                                    MelonLogger.Error(e.StackTrace);
+                                }
+                            }
+                        }
+
+                        ExpressionSubmenu(avatar_descriptor.expressionsMenu);
+                    }));
+                }
+            });
+
+            MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) {
