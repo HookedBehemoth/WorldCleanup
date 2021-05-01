@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -154,7 +154,7 @@ namespace WorldCleanup {
                 parameter.Lock();
         }
 
-        private static HashSet<IntPtr> s_ParameterOverrideList = new HashSet<IntPtr>();
+        private static readonly HashSet<IntPtr> s_ParameterOverrideList = new();
 
         public static void SetValue(this AvatarParameter parameter, float value) {
             /* Call original delegate to avoid self MITM */
