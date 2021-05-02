@@ -43,7 +43,7 @@ namespace WorldCleanup {
                 var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
 
                 /* Apply "Noto Sans Regular" font to each Text */
-                foreach (var text in bundle_object.GetComponentsInChildren<Text>()) {
+                foreach (var text in bundle_object.GetComponentsInChildren<Text>(true)) {
                     MelonLogger.Msg($"patching text {text.name}");
                     text.font = noto_sans;
                 }
