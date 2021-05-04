@@ -131,7 +131,8 @@ namespace WorldCleanup {
                     element.renderer.gameObject.active = element.renderer.enabled = element.state;
         }
 
-        public static void StoreParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
+        public static void StoreParameters(VRCAvatarManager manager) {
+            var api_avatar = manager.field_Private_ApiAvatar_1;
             MelonLogger.Msg($"Storing avatar state for {api_avatar.name}");
 
             var key = api_avatar.id;
@@ -194,7 +195,8 @@ namespace WorldCleanup {
             _floatPropertySetterDelegate(parameter.Pointer, value);
         }
 
-        public static void ResetParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
+        public static void ResetParameters(VRCAvatarManager manager) {
+            var api_avatar = manager.field_Private_ApiAvatar_1;
             var key = api_avatar.id;
 
             if (settings.ContainsKey(key))
@@ -211,14 +213,18 @@ namespace WorldCleanup {
 
         public static void Unlock(this AvatarParameter parameter) {
             /* Reenable parameter override */
-            if (s_ParameterOverrideList.Contains(parameter.Pointer))
+            if (parameter.IsLocked())
                 s_ParameterOverrideList.Remove(parameter.Pointer);
         }
 
         public static void Lock(this AvatarParameter parameter) {
             /* Disable override parameters */
-            if (!s_ParameterOverrideList.Contains(parameter.Pointer))
+            if (!parameter.IsLocked())
                 s_ParameterOverrideList.Add(parameter.Pointer);
+        }
+
+        public static bool IsLocked(this AvatarParameter parameter) {
+            return s_ParameterOverrideList.Contains(parameter.Pointer);
         }
 
         private static bool ShouldIgnoreSetter(IntPtr parameter) {

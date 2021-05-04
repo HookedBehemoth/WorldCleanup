@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -101,9 +101,21 @@ namespace WorldCleanup {
                         var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-                        /* Unlock all parameters to prevent state machine tomfoolery */
-                        foreach (var parameter in parameters)
-                            parameter.Unlock();
+                        var any_locked = false;
+                        foreach (var parameter in parameters) {
+                            if (parameter.IsLocked()) {
+                                any_locked = true;
+                                break;
+                            }
+                        }
+
+                        var toggle_state = (Action<bool>)((state) => {
+                            foreach (var parameter in parameters)
+                                if (state) parameter.Lock(); else parameter.Unlock();
+                        });
+
+                        AMAPI.AddTogglePedalToSubMenu("Lock", any_locked, toggle_state, icon: UiExpansion.LockClosedIcon);
+                        AMAPI.AddButtonPedalToSubMenu("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
                         AvatarParameter FindParameter(string name) {
                             foreach (var parameter in parameters)
@@ -526,8 +538,8 @@ namespace WorldCleanup {
                     });
                 }
             }
-            avatar_list.AddSimpleButton("Save Config", () => { Parameters.StoreParameters(api_avatar, manager); });
-            avatar_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(api_avatar, manager); });
+            avatar_list.AddSimpleButton("Save Config", () => { Parameters.StoreParameters(manager); });
+            avatar_list.AddSimpleButton("Reset", () => { Parameters.ResetParameters(manager); });
             avatar_list.AddSimpleButton("Back", () => { avatar_list.Hide(); if (!close_on_exit) PlayerList(); });
             avatar_list.Show();
         }

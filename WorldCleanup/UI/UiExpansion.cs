@@ -10,6 +10,7 @@ using System.Collections;
 namespace WorldCleanup {
     static class UiExpansion {
         private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
+        public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon;
 
         public static void LoadUiObjects() {
             ClassInjector.RegisterTypeInIl2Cpp<Updater>();
@@ -43,10 +44,8 @@ namespace WorldCleanup {
                 var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
 
                 /* Apply "Noto Sans Regular" font to each Text */
-                foreach (var text in bundle_object.GetComponentsInChildren<Text>(true)) {
-                    MelonLogger.Msg($"patching text {text.name}");
+                foreach (var text in bundle_object.GetComponentsInChildren<Text>())
                     text.font = noto_sans;
-                }
 
                 /* Attach it to QuickMenu to inherit render queue changes */
                 var instantiated_object = UnityEngine.Object.Instantiate(bundle_object, parent.transform);
@@ -61,6 +60,16 @@ namespace WorldCleanup {
             ButtonToggleItem = LoadUiElement("Assets/UI/ButtonToggleItem.prefab");
             ComponentToggle = LoadUiElement("Assets/UI/ComponentToggle.prefab");
             DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
+            
+            T LoadGeneric<T>(string path) where T: UnityEngine.Object {
+                var asset = asset_bundle.LoadAsset<T>(path);
+                asset.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+                return asset;
+            }
+
+            SaveIcon = LoadGeneric<Texture2D>("Assets/Sprite/floppy-disk_1f4be.png");
+            LockClosedIcon = LoadGeneric<Texture2D>("Assets/Sprite/lock_1f512.png");
+            LockOpenIcon = LoadGeneric<Texture2D>("Assets/Sprite/open-lock_1f513.png");
         }
 
         public static void AddIntDiffListItem(this ICustomShowableLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
