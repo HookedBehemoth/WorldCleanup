@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -93,7 +93,8 @@ namespace WorldCleanup {
                 foreach (var entry in query) {
                     var manager = entry.Value.transform.GetComponentInParent<VRCAvatarManager>();
                     var controller = manager.field_Private_AvatarPlayableController_0;
-                    if (controller == null)
+                    /* Ignore SDK2 & avatars w/o custom expressions */
+                    if (controller == null || !manager.prop_VRCAvatarDescriptor_0.customExpressions)
                         continue;
 
                     AMAPI.AddSubMenuToSubMenu(entry.Key, (Action)(() => {
@@ -421,88 +422,79 @@ namespace WorldCleanup {
                 /* Parameters */
                 var controller = manager.field_Private_AvatarPlayableController_0;
 
-                /* Only populated on SDK3 avatars */
-                if (controller != null) {
+                /* Ignore SDK2 & avatars w/o custom expressions */
+                if (controller != null && manager.prop_VRCAvatarDescriptor_0.customExpressions) {
                     var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
                     var filtered = Parameters.FilterDefaultParameters(parameters);
 
-                    if (filtered.Count > 0) {
-                        var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
+                    var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
 
-                        avatar_list.AddSimpleButton($"Parameter Menu", () => {
-                            /* Unlock all parameters to prevent state machine tomfoolery */
+                    avatar_list.AddSimpleButton($"Parameter Menu", () => {
+                        /* Unlock all parameters to prevent state machine tomfoolery */
+                        foreach (var parameter in parameters)
+                            parameter.Unlock();
+
+                        AvatarParameter FindParameter(string name) {
                             foreach (var parameter in parameters)
-                                parameter.Unlock();
+                                if (parameter.field_Private_String_0 == name)
+                                    return parameter;
+                            return null;
+                        }
 
-                            AvatarParameter FindParameter(string name) {
-                                foreach (var parameter in parameters)
-                                    if (parameter.field_Private_String_0 == name)
-                                        return parameter;
-                                return null;
-                            }
-
-                            void ExpressionSubmenu(ICustomShowableLayoutedMenu list, VRCExpressionsMenu expressions_menu) {
-                                foreach (var control in expressions_menu.controls) {
-                                    switch (control.type) {
-                                        case VRCExpressionsMenu.Control.ControlType.Button:
-                                        /* Note: Action Menu "Buttons" are actually Toggles */
-                                        /*       that set on press and revert on release.   */
-                                        /* TODO: Add proper implementation.                 */
-                                        case VRCExpressionsMenu.Control.ControlType.Toggle: {
-                                            var param = FindParameter(control.parameter.name);
-                                            var old = param.GetValue();
-                                            void set_value(bool value) {
-                                                if (value) {
-                                                    old = param.GetValue();
-                                                    param.SetValue(control.value);
-                                                } else {
-                                                    param.SetValue(old);
-                                                }
+                        void ExpressionSubmenu(ICustomShowableLayoutedMenu list, VRCExpressionsMenu expressions_menu) {
+                            foreach (var control in expressions_menu.controls) {
+                                switch (control.type) {
+                                    case VRCExpressionsMenu.Control.ControlType.Button:
+                                    /* Note: Action Menu "Buttons" are actually Toggles */
+                                    /*       that set on press and revert on release.   */
+                                    /* TODO: Add proper implementation.                 */
+                                    case VRCExpressionsMenu.Control.ControlType.Toggle: {
+                                        var param = FindParameter(control.parameter.name);
+                                        var old = param.GetValue();
+                                        void set_value(bool value) {
+                                            if (value) {
+                                                old = param.GetValue();
+                                                param.SetValue(control.value);
+                                            } else {
+                                                param.SetValue(old);
                                             }
-                                            bool get_value() { return param.GetValue() == control.value; }
-                                            if (get_value())
-                                                old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
-                                            list.AddToggleListItem(control.name, set_value, get_value, true);
-                                            break;
                                         }
-
-                                        case VRCExpressionsMenu.Control.ControlType.SubMenu: {
-                                            list.AddSimpleButton(control.name, () => {
-                                                var sub_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-
-                                                ExpressionSubmenu(sub_menu, control.subMenu);
-
-                                                sub_menu.AddSimpleButton("Back", () => { sub_menu.Hide(); list.Show(); });
-                                                sub_menu.Show();
-                                            });
-                                            break;
-                                        }
-
-                                        case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
-                                            var param = FindParameter(control.subParameters[0].name);
-                                            list.AddSliderListItem(control.name, param.SetValue, param.GetValue, 0, 1);
-                                            break;
-                                        }
-
-                                        default:
-                                            list.AddLabel($"\n\n{control.name}: {control.type} unsupported");
-                                            break;
+                                        bool get_value() { return param.GetValue() == control.value; }
+                                        if (get_value())
+                                            old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        list.AddToggleListItem(control.name, set_value, get_value, true);
+                                        break;
                                     }
+
+                                    case VRCExpressionsMenu.Control.ControlType.SubMenu: {
+                                        list.AddSimpleButton(control.name, () => {
+                                            var sub_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+
+                                            ExpressionSubmenu(sub_menu, control.subMenu);
+
+                                            sub_menu.AddSimpleButton("Back", () => { sub_menu.Hide(); list.Show(); });
+                                            sub_menu.Show();
+                                        });
+                                        break;
+                                    }
+
+                                    case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
+                                        var param = FindParameter(control.subParameters[0].name);
+                                        list.AddSliderListItem(control.name, param.SetValue, param.GetValue, 0, 1);
+                                        break;
+                                    }
+
+                                    default:
+                                        list.AddLabel($"\n\n{control.name}: {control.type} unsupported");
+                                        break;
                                 }
                             }
-                            var menu_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                        }
+                        var menu_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
 
-                            ExpressionSubmenu(menu_list, avatar_descriptor.expressionsMenu);
+                        ExpressionSubmenu(menu_list, avatar_descriptor.expressionsMenu);
 
-                            menu_list.AddSimpleButton("Back", () => { menu_list.Hide(); AvatarList(player_name, close_on_exit); });
-                            menu_list.Show();
-                        });
-
-                        avatar_list.AddSimpleButton($"Parameters: {filtered.Count}", () => {
-                            /* Unlock all parameters to prevent state machine tomfoolery */
-                            foreach (var parameter in parameters)
-                                parameter.Unlock();
-
+                        menu_list.AddSimpleButton($"Raw Parameters: {filtered.Count}", () => {
                             var parameter_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                             foreach (var parameter in filtered) {
                                 var name = parameter.field_Private_String_0;
@@ -528,7 +520,10 @@ namespace WorldCleanup {
                             parameter_list.AddSimpleButton("Back", () => { parameter_list.Hide(); AvatarList(player_name, close_on_exit); });
                             parameter_list.Show();
                         });
-                    }
+
+                        menu_list.AddSimpleButton("Back", () => { menu_list.Hide(); AvatarList(player_name, close_on_exit); });
+                        menu_list.Show();
+                    });
                 }
             }
             avatar_list.AddSimpleButton("Save Config", () => { Parameters.StoreParameters(api_avatar, manager); });
