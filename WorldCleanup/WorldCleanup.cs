@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -20,6 +20,7 @@ namespace WorldCleanup {
         private static Dictionary<string, GameObject> s_PlayerList;
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
+        private static List<VRC_MirrorReflection> s_Mirrors;
 
         public override void OnApplicationQuit() {
             /* Flush avatar parameters */
@@ -203,20 +204,27 @@ namespace WorldCleanup {
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) {
+            if (sceneName == "Application2" || sceneName == "ui")
+                return;
+
             /* Get active scene */
             var active_scene = SceneManager.GetActiveScene();
 
             s_PlayerList = new Dictionary<string, GameObject>();
             s_Lights = new List<Tuple<Light, LightShadows>>();
             s_PostProcessingVolumes = new List<Tuple<PostProcessVolume, bool>>();
+            s_Mirrors = new List<VRC_MirrorReflection>();
 
+            var disable_shadows = Settings.s_DisableLights;
+            var disable_ppv = Settings.s_DisablePostProcessing;
+            var disable_mirrors = Settings.s_DisableMirrors;
             /* Iterate root objects */
             foreach (var sceneObject in active_scene.GetRootGameObjects()) {
                 /* Store all lights */
                 foreach (var light in sceneObject.GetComponentsInChildren<Light>(true)) {
                     s_Lights.Add(new Tuple<Light, LightShadows>(light, light.shadows));
 
-                    if (Settings.s_DisableLights)
+                    if (disable_shadows)
                         light.shadows = LightShadows.None;
                 }
 
@@ -224,8 +232,16 @@ namespace WorldCleanup {
                 foreach (var volume in sceneObject.GetComponentsInChildren<PostProcessVolume>(true)) {
                     s_PostProcessingVolumes.Add(new Tuple<PostProcessVolume, bool>(volume, volume.gameObject.active));
 
-                    if (Settings.s_DisablePostProcessing)
+                    if (disable_ppv)
                         volume.gameObject.active = false;
+                }
+
+                /* Store Mirrors */
+                foreach (var mirror in sceneObject.GetComponentsInChildren<VRC_MirrorReflection>(true)) {
+                    s_Mirrors.Add(mirror);
+
+                    if (disable_mirrors)
+                        mirror.enabled = false;
                 }
 
                 /* Other? */
@@ -298,6 +314,23 @@ namespace WorldCleanup {
                 }, () => !Settings.s_DisablePostProcessing, false);
             } else {
                 settings_menu.AddLabel("No Post Processing found on this map");
+            }
+
+            /* Mirrors */
+            if (s_Mirrors.Count() > 0) {
+                settings_menu.AddButtonToggleListItem("Mirror", $"Volumes: {s_Mirrors.Count()}", () => {
+                    var mirror_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                    foreach (var mirror in s_Mirrors)
+                        mirror_menu.AddToggleListItem(mirror.name, (state) => { mirror.enabled = state; }, () => mirror.enabled, true);
+                    mirror_menu.AddSimpleButton("Back", MainMenu);
+                    mirror_menu.Show();
+                }, (enable) => {
+                    foreach (var mirror in s_Mirrors)
+                        mirror.enabled = enable;
+                    Settings.s_DisableMirrors = !enable;
+                }, () => !Settings.s_DisableMirrors, false);
+            } else {
+                settings_menu.AddLabel("No Mirrors found on this map");
             }
 
             /* PlayerMods */

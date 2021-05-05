@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using System.IO;
 
 namespace WorldCleanup {
@@ -7,6 +7,7 @@ namespace WorldCleanup {
 
         private const string DisableLights = "DisableLights";
         private const string DisablePostProcessing = "DisablePostProcessing";
+        private const string DisableMirrors = "DisableMirrors";
         private const string EnableAudioOverride = "EnableAudioOverride";
 
         private const string VoiceGain = "VoiceGain";
@@ -22,6 +23,7 @@ namespace WorldCleanup {
 
             MelonPreferences.CreateEntry(Category, DisableLights, false);
             MelonPreferences.CreateEntry(Category, DisablePostProcessing, false);
+            MelonPreferences.CreateEntry(Category, DisableMirrors, false);
             MelonPreferences.CreateEntry(Category, EnableAudioOverride, false);
 
             MelonPreferences.CreateEntry(Category, VoiceGain, 15.0f);
@@ -45,6 +47,11 @@ namespace WorldCleanup {
         public static bool s_DisablePostProcessing {
             get => MelonPreferences.GetEntryValue<bool>(Category, DisablePostProcessing);
             set => MelonPreferences.SetEntryValue(Category, DisablePostProcessing, value);
+        }
+
+        public static bool s_DisableMirrors {
+            get => MelonPreferences.GetEntryValue<bool>(Category, DisableMirrors);
+            set => MelonPreferences.SetEntryValue(Category, DisableMirrors, value);
         }
 
         public static bool s_EnableAudioOverride {
