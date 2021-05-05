@@ -214,8 +214,10 @@ namespace WorldCleanup {
             s_PostProcessingVolumes = new List<Tuple<PostProcessVolume, bool>>();
             s_Mirrors = new List<VRC_MirrorReflection>();
             s_Portraits = new Dictionary<string, Texture2D>();
-            if (UiExpansion.PreviewCamera != null)
+            if (UiExpansion.PreviewCamera != null) {
                 s_PreviewCaptureCamera = GameObject.Instantiate(UiExpansion.PreviewCamera);
+                s_PreviewCaptureCamera.SetActive(false);
+            }
 
             var disable_shadows = Settings.s_DisableLights;
             var disable_ppv = Settings.s_DisablePostProcessing;
@@ -275,6 +277,9 @@ namespace WorldCleanup {
                 /* Take preview image for action menu */
                 /* Note: in this state, everyone should be t-posing and your own head is still there */
                 if (manager.field_Private_AvatarPlayableController_0 && manager.prop_VRCAvatarDescriptor_0.customExpressions && !s_Portraits.ContainsKey(avatar_id)) {
+                    /* Enable camera */
+                    s_PreviewCaptureCamera.SetActive(true);
+
                     /* Move camera infront of head */
                     var descriptor = manager.prop_VRCAvatarDescriptor_0;
                     var head_height = descriptor.ViewPosition.y;
@@ -306,6 +311,9 @@ namespace WorldCleanup {
 
                     /* Store image */
                     s_Portraits.Add(avatar_id, image);
+
+                    /* Disable camera again */
+                    s_PreviewCaptureCamera.SetActive(false);
                 }
             }
         }
