@@ -10,7 +10,8 @@ using System.Collections;
 namespace WorldCleanup {
     static class UiExpansion {
         private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
-        public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon;
+        public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon, DefaultUserIcon, DefaultExpressionIcon;
+        public static GameObject PreviewCamera;
 
         public static void LoadUiObjects() {
             ClassInjector.RegisterTypeInIl2Cpp<Updater>();
@@ -70,6 +71,10 @@ namespace WorldCleanup {
             SaveIcon = LoadGeneric<Texture2D>("Assets/Sprite/floppy-disk_1f4be.png");
             LockClosedIcon = LoadGeneric<Texture2D>("Assets/Sprite/lock_1f512.png");
             LockOpenIcon = LoadGeneric<Texture2D>("Assets/Sprite/open-lock_1f513.png");
+            DefaultUserIcon = LoadGeneric<Texture2D>("Assets/Sprite/icon_default.png");
+            DefaultExpressionIcon = LoadGeneric<Texture2D>("Assets/Sprite/default_expression.png");
+
+            PreviewCamera = LoadGeneric<GameObject>("Assets/Avatar Preview/AvatarPreviewCamera.prefab");
         }
 
         public static void AddIntDiffListItem(this ICustomShowableLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {

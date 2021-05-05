@@ -104,7 +104,9 @@ namespace WorldCleanup {
             return manager.field_Private_ArrayOf_Renderer_0;
         }
 
-        public static void ApplyParameters(ApiAvatar api_avatar, VRCAvatarManager manager) {
+        public static void ApplyParameters(VRCAvatarManager manager) {
+            var api_avatar = manager.field_Private_ApiAvatar_1;
+            
             /* Look up store */
             var key = api_avatar.id;
             if (!settings.ContainsKey(key))
@@ -196,8 +198,7 @@ namespace WorldCleanup {
         }
 
         public static void ResetParameters(VRCAvatarManager manager) {
-            var api_avatar = manager.field_Private_ApiAvatar_1;
-            var key = api_avatar.id;
+            var key = manager.field_Private_ApiAvatar_1.id;
 
             if (settings.ContainsKey(key))
                 settings.Remove(key);

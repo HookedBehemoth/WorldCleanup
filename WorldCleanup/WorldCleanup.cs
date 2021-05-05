@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -21,6 +21,8 @@ namespace WorldCleanup {
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
         private static List<VRC_MirrorReflection> s_Mirrors;
+        private static Dictionary<string, Texture2D> s_Portraits;
+        private static GameObject s_PreviewCaptureCamera;
 
         public override void OnApplicationQuit() {
             /* Flush avatar parameters */
@@ -98,24 +100,15 @@ namespace WorldCleanup {
                     if (controller == null || !manager.prop_VRCAvatarDescriptor_0.customExpressions)
                         continue;
 
-                    AMAPI.AddSubMenuToSubMenu(entry.Key, (Action)(() => {
+                    /* Load portrait, fallback to VRC+ profile picture (lol), fallback to default user icon */
+                    var user_icon = s_Portraits[manager.prop_ApiAvatar_0.id] ?? controller.field_Private_VRCPlayer_0.field_Private_Texture2D_1 ?? UiExpansion.DefaultUserIcon;
+                    
+                    AMAPI.AddSubMenuToSubMenu(entry.Key, () => {
                         var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                        var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-                        var any_locked = false;
-                        foreach (var parameter in parameters) {
-                            if (parameter.IsLocked()) {
-                                any_locked = true;
-                                break;
-                            }
-                        }
-
-                        var toggle_state = (Action<bool>)((state) => {
-                            foreach (var parameter in parameters)
-                                if (state) parameter.Lock(); else parameter.Unlock();
-                        });
-
-                        AMAPI.AddTogglePedalToSubMenu("Lock", any_locked, toggle_state, icon: UiExpansion.LockClosedIcon);
+                        AMAPI.AddTogglePedalToSubMenu("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
                         AMAPI.AddButtonPedalToSubMenu("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
                         AvatarParameter FindParameter(string name) {
@@ -147,12 +140,12 @@ namespace WorldCleanup {
                                         bool get_value() { return param.GetValue() == control.value; }
                                         if (get_value())
                                             old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
-                                        AMAPI.AddTogglePedalToSubMenu(control.name, get_value(), set_value, icon: control.icon);
+                                        AMAPI.AddTogglePedalToSubMenu(control.name, get_value(), set_value, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.SubMenu: {
-                                        AMAPI.AddSubMenuToSubMenu(control.name, () => { ExpressionSubmenu(control.subMenu); }, icon: control.icon);
+                                        AMAPI.AddSubMenuToSubMenu(control.name, () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
                                         break;
                                     }
 
@@ -162,7 +155,7 @@ namespace WorldCleanup {
                                         AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
                                             horizontal.SetFloatProperty(value.x);
                                             vertical.SetFloatProperty(value.y);
-                                        }, icon: control.icon);
+                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
                                         break;
                                     }
 
@@ -176,13 +169,13 @@ namespace WorldCleanup {
                                             down.SetFloatProperty(-Math.Min(0, value.y));
                                             left.SetFloatProperty(Math.Max(0, value.x));
                                             right.SetFloatProperty(-Math.Min(0, value.x));
-                                        }, icon: control.icon);
+                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                         var param = FindParameter(control.subParameters[0].name);
-                                        AMAPI.AddRadialPedalToSubMenu(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon);
+                                        AMAPI.AddRadialPedalToSubMenu(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
                                         break;
                                     }
                                 }
@@ -193,7 +186,7 @@ namespace WorldCleanup {
                         }
 
                         ExpressionSubmenu(avatar_descriptor.expressionsMenu);
-                    }));
+                    }, icon: user_icon);
 
                     if (--remaining_count == 0)
                         break;
@@ -214,6 +207,9 @@ namespace WorldCleanup {
             s_Lights = new List<Tuple<Light, LightShadows>>();
             s_PostProcessingVolumes = new List<Tuple<PostProcessVolume, bool>>();
             s_Mirrors = new List<VRC_MirrorReflection>();
+            s_Portraits = new Dictionary<string, Texture2D>();
+            if (UiExpansion.PreviewCamera != null)
+                s_PreviewCaptureCamera = GameObject.Instantiate(UiExpansion.PreviewCamera);
 
             var disable_shadows = Settings.s_DisableLights;
             var disable_ppv = Settings.s_DisablePostProcessing;
@@ -262,11 +258,49 @@ namespace WorldCleanup {
 
                 var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
 
-                Parameters.ApplyParameters(manager.field_Private_ApiAvatar_1, manager);
+                Parameters.ApplyParameters(manager);
 
                 var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
                 var parameters = manager.GetAvatarParameters();
                 destroy_listener.OnDestroyed += () => { foreach (var parameter in parameters) parameter.Unlock(); };
+
+                var avatar_id = manager.field_Private_ApiAvatar_1.id;
+
+                /* Take preview image for action menu */
+                /* Note: in this state, everyone should be t-posing and your own head is still there */
+                if (manager.field_Private_AvatarPlayableController_0 && manager.prop_VRCAvatarDescriptor_0.customExpressions && !s_Portraits.ContainsKey(avatar_id)) {
+                    /* Move camera infront of head */
+                    var descriptor = manager.prop_VRCAvatarDescriptor_0;
+                    var head_height = descriptor.ViewPosition.y;
+                    var head = avatar.transform.position + new Vector3(0, head_height, 0);
+                    var target = head + avatar.transform.forward * 0.3f;
+                    var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
+                    camera.transform.position = target;
+                    camera.transform.LookAt(head);
+                    camera.cullingMask = 0xffff;
+                    camera.orthographicSize = head_height / 8;
+                    
+                    /* Set render target */
+                    var currentRT = RenderTexture.active;
+                    RenderTexture.active = camera.targetTexture;
+
+                    /* Render the camera's view */
+                    camera.Render();
+
+                    /* Make a new texture and read the active Render Texture into it */
+                    var image = new Texture2D(camera.targetTexture.width, camera.targetTexture.height, TextureFormat.RGBA32, false, true);
+                    image.ReadPixels(new Rect(0, 0, camera.targetTexture.width, camera.targetTexture.height), 0, 0);
+                    image.Apply();
+                    image.hideFlags = HideFlags.DontUnloadUnusedAsset;
+
+                    MelonLogger.Msg($"Taken portrait of {manager.prop_ApiAvatar_0.name}");
+
+                    /* Replace the original active Render Texture */
+                    RenderTexture.active = currentRT;
+
+                    /* Store image */
+                    s_Portraits.Add(avatar_id, image);
+                }
             }
         }
 
