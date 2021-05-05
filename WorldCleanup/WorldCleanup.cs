@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -155,7 +155,11 @@ namespace WorldCleanup {
                                         AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
                                             horizontal.SetFloatProperty(value.x);
                                             vertical.SetFloatProperty(value.y);
-                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
+                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon,
+                                        control.labels[0].name,
+                                        control.labels[1].name,
+                                        control.labels[2].name,
+                                        control.labels[3].name);
                                         break;
                                     }
 
@@ -169,7 +173,11 @@ namespace WorldCleanup {
                                             down.SetFloatProperty(-Math.Min(0, value.y));
                                             left.SetFloatProperty(Math.Max(0, value.x));
                                             right.SetFloatProperty(-Math.Min(0, value.x));
-                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
+                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon,
+                                        control.labels[0].name,
+                                        control.labels[1].name,
+                                        control.labels[2].name,
+                                        control.labels[3].name);
                                         break;
                                     }
 
