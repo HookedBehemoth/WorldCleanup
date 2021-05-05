@@ -18,7 +18,7 @@ namespace WorldCleanup {
 
         private const string UpdateInterval = "UpdateInterval";
 
-        public static void OnPreferencesLoaded() {
+        public static void RegisterConfig() {
             MelonPreferences.CreateCategory(Category);
 
             MelonPreferences.CreateEntry(Category, DisableLights, false);
@@ -33,10 +33,6 @@ namespace WorldCleanup {
             MelonPreferences.CreateEntry(Category, VoiceLowpass, true);
 
             MelonPreferences.CreateEntry(Category, UpdateInterval, 1f);
-        }
-
-        public static void OnPreferencesSaved() {
-            /* ... */
         }
 
         public static bool s_DisableLights {

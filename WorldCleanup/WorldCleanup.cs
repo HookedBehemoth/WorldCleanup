@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -7,6 +7,7 @@ using System;
 using System.Reflection;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Collections;
 using System.Collections.Generic;
 using VRC.Playables;
 using VRC.SDKBase;
@@ -24,26 +25,15 @@ namespace WorldCleanup {
         private static Dictionary<string, Texture2D> s_Portraits;
         private static GameObject s_PreviewCaptureCamera;
 
-        public override void OnApplicationQuit() {
-            /* Flush avatar parameters */
-            Parameters.OnPreferencesSaved();
-
-            /* Flush audio config */
-            WorldAudio.OnPreferencesSaved();
-
-            /* Flush misc settings */
-            Settings.OnPreferencesSaved();
-        }
-
-        public override void VRChat_OnUiManagerInit() {
+        public override void OnApplicationStart() {
             /* Register settings */
-            Settings.OnPreferencesLoaded();
+            Settings.RegisterConfig();
 
             /* Load audio settings */
-            WorldAudio.OnPreferencesLoaded();
+            WorldAudio.LoadConfig();
 
             /* Load avatar parameters */
-            Parameters.OnPreferencesLoaded();
+            Parameters.LoadConfig();
 
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
@@ -58,8 +48,8 @@ namespace WorldCleanup {
                 _onAvatarInstantiatedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarInstantiatedDelegate>(*(IntPtr*)(void*)on_avatar_instantiated);
             }
 
-            NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerJoined);
-            NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_1.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerLeft);
+            /* Register async, awaiting network manager */
+            MelonCoroutines.Start(RegisterJoinLeaveNotifier());
 
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("Player List", PlayerList);
             ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("WorldCleanup", MainMenu);
@@ -204,6 +194,14 @@ namespace WorldCleanup {
             MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
         }
 
+        public override void OnApplicationQuit() {
+            /* Flush avatar parameters */
+            Parameters.FlushConfig();
+
+            /* Flush audio config */
+            WorldAudio.FlushConfig();
+        }
+
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) {
             if (sceneName == "Application2" || sceneName == "ui")
                 return;
@@ -310,6 +308,13 @@ namespace WorldCleanup {
                     s_Portraits.Add(avatar_id, image);
                 }
             }
+        }
+
+        private static IEnumerator RegisterJoinLeaveNotifier() {
+            while (NetworkManager.field_Internal_Static_NetworkManager_0 == null) yield return null;
+
+            NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerJoined);
+            NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_1.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerLeft);
         }
 
         private static void OnPlayerJoined(Player player) {

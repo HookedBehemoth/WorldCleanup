@@ -106,7 +106,7 @@ namespace WorldCleanup {
 
         public static void ApplyParameters(VRCAvatarManager manager) {
             var api_avatar = manager.field_Private_ApiAvatar_1;
-            
+
             /* Look up store */
             var key = api_avatar.id;
             if (!settings.ContainsKey(key))
@@ -279,7 +279,7 @@ namespace WorldCleanup {
 
         private static readonly string ConfigFileName = "AvatarParameterConfig.json";
 
-        public static void OnPreferencesLoaded() {
+        public static void LoadConfig() {
             try {
                 var config = Settings.LoadConfigFile(ConfigFileName);
                 settings = JsonConvert.DeserializeObject<Dictionary<string, AvatarSettings>>(config);
@@ -292,7 +292,7 @@ namespace WorldCleanup {
                 settings = new Dictionary<string, AvatarSettings>();
         }
 
-        public static void OnPreferencesSaved() {
+        public static void FlushConfig() {
             var serialized = JsonConvert.SerializeObject(settings);
             Settings.StoreConfigFile(ConfigFileName, serialized);
         }

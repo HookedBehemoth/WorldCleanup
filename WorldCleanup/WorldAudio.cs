@@ -36,7 +36,7 @@ namespace WorldCleanup {
         static bool s_Enabled;
         static AudioConfig s_AudioConfig;
 
-        public static void OnPreferencesLoaded() {
+        public static void LoadConfig() {
             s_Enabled = Settings.s_EnableAudioOverride;
 
             s_AudioConfig = new AudioConfig {
@@ -48,7 +48,7 @@ namespace WorldCleanup {
             };
         }
 
-        public static void OnPreferencesSaved() {
+        public static void FlushConfig() {
             Settings.s_EnableAudioOverride = s_Enabled;
             Settings.s_VoiceGain = s_AudioConfig.voice_gain;
             Settings.s_VoiceFar = s_AudioConfig.voice_distance_far;
