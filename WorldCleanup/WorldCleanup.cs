@@ -85,10 +85,11 @@ namespace WorldCleanup {
 
                 foreach (var entry in query) {
                     var manager = entry.Value.transform.GetComponentInParent<VRCAvatarManager>();
-                    var controller = manager.field_Private_AvatarPlayableController_0;
                     /* Ignore SDK2 & avatars w/o custom expressions */
-                    if (controller == null || !manager.prop_VRCAvatarDescriptor_0.customExpressions)
+                    if (!manager.HasCustomExpressions())
                         continue;
+
+                    var controller = manager.field_Private_AvatarPlayableController_0;
 
                     /* Load portrait, fallback to VRC+ profile picture (lol), fallback to default user icon */
                     var user_icon = s_Portraits[manager.prop_ApiAvatar_0.id] ?? controller.field_Private_VRCPlayer_0.field_Private_Texture2D_1 ?? UiExpansion.DefaultUserIcon;
@@ -276,7 +277,7 @@ namespace WorldCleanup {
 
                 /* Take preview image for action menu */
                 /* Note: in this state, everyone should be t-posing and your own head is still there */
-                if (manager.field_Private_AvatarPlayableController_0 && manager.prop_VRCAvatarDescriptor_0.customExpressions && !s_Portraits.ContainsKey(avatar_id)) {
+                if (manager.HasCustomExpressions() && !s_Portraits.ContainsKey(avatar_id)) {
                     /* Enable camera */
                     s_PreviewCaptureCamera.SetActive(true);
 
@@ -519,11 +520,9 @@ namespace WorldCleanup {
                     avatar_list.AddSimpleButton($"Other: {remainder.Count()}", () => { ShowGenericRendererToggleList(null, remainder); });
             }
             {
-                /* Parameters */
-                var controller = manager.field_Private_AvatarPlayableController_0;
-
                 /* Ignore SDK2 & avatars w/o custom expressions */
-                if (controller != null && manager.prop_VRCAvatarDescriptor_0.customExpressions) {
+                if (manager.HasCustomExpressions()) {
+                    var controller = manager.field_Private_AvatarPlayableController_0;
                     var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
                     var filtered = Parameters.FilterDefaultParameters(parameters);
 

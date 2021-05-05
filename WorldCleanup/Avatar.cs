@@ -100,6 +100,13 @@ namespace WorldCleanup {
             return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
         }
 
+        public static bool HasCustomExpressions(this VRCAvatarManager manager) {
+            return manager.field_Private_AvatarPlayableController_0 &&
+                   manager.prop_VRCAvatarDescriptor_0.customExpressions &&
+                   manager.prop_VRCAvatarDescriptor_0.expressionParameters != null &&
+                   manager.prop_VRCAvatarDescriptor_0.expressionsMenu != null;
+        }
+
         public static IEnumerable<Renderer> GetAvatarRenderers(this VRCAvatarManager manager) {
             return manager.field_Private_ArrayOf_Renderer_0;
         }
