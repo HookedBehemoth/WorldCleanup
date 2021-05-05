@@ -285,7 +285,7 @@ namespace WorldCleanup {
                     var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
                     camera.transform.position = target;
                     camera.transform.LookAt(head);
-                    camera.cullingMask = 0xffff;
+                    camera.cullingMask = 1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("PlayerLocal");
                     camera.orthographicSize = head_height / 8;
                     
                     /* Set render target */
