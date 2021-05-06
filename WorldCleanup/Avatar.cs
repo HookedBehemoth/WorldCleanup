@@ -103,8 +103,12 @@ namespace WorldCleanup {
         public static bool HasCustomExpressions(this VRCAvatarManager manager) {
             return manager.field_Private_AvatarPlayableController_0 &&
                    manager.prop_VRCAvatarDescriptor_0.customExpressions &&
+                   /* Fuck you */
                    manager.prop_VRCAvatarDescriptor_0.expressionParameters != null &&
-                   manager.prop_VRCAvatarDescriptor_0.expressionsMenu != null;
+                   manager.prop_VRCAvatarDescriptor_0.expressionsMenu != null &&
+                   /* This isn't funny */
+                   manager.prop_VRCAvatarDescriptor_0.expressionsMenu.controls != null &&
+                   manager.prop_VRCAvatarDescriptor_0.expressionsMenu.controls.Count > 0;
         }
 
         public static IEnumerable<Renderer> GetAvatarRenderers(this VRCAvatarManager manager) {
