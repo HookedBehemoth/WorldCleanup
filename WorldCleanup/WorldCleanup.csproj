@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Avatar.cs" />
+    <Compile Include="RefCountedObject.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UI\UIEventSyncExtensions.cs" />
     <Compile Include="UI\UiExpansion.cs" />

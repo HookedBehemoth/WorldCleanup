@@ -22,7 +22,7 @@ namespace WorldCleanup {
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
         private static List<VRC_MirrorReflection> s_Mirrors;
-        private static Dictionary<string, Texture2D> s_Portraits;
+        private static Dictionary<string, RefCountedObject<Texture2D>> s_Portraits;
         private static GameObject s_PreviewCaptureCamera;
 
         public override void OnApplicationStart() {
@@ -89,12 +89,10 @@ namespace WorldCleanup {
                     if (!manager.HasCustomExpressions())
                         continue;
 
-                    var controller = manager.field_Private_AvatarPlayableController_0;
-
-                    /* Load portrait, fallback to VRC+ profile picture (lol), fallback to default user icon */
-                    var user_icon = s_Portraits[manager.prop_ApiAvatar_0.id] ?? controller.field_Private_VRCPlayer_0.field_Private_Texture2D_1 ?? UiExpansion.DefaultUserIcon;
+                    var user_icon = s_Portraits[manager.prop_ApiAvatar_0.id].Get();
                     
                     AMAPI.AddSubMenuToSubMenu(entry.Key, () => {
+                        var controller = manager.field_Private_AvatarPlayableController_0;
                         var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
@@ -214,7 +212,7 @@ namespace WorldCleanup {
             s_Lights = new List<Tuple<Light, LightShadows>>();
             s_PostProcessingVolumes = new List<Tuple<PostProcessVolume, bool>>();
             s_Mirrors = new List<VRC_MirrorReflection>();
-            s_Portraits = new Dictionary<string, Texture2D>();
+            s_Portraits = new Dictionary<string, RefCountedObject<Texture2D>>();
             if (UiExpansion.PreviewCamera != null) {
                 s_PreviewCaptureCamera = GameObject.Instantiate(UiExpansion.PreviewCamera);
                 s_PreviewCaptureCamera.SetActive(false);
@@ -269,52 +267,60 @@ namespace WorldCleanup {
 
                 Parameters.ApplyParameters(manager);
 
+                var avatar_id = manager.field_Private_ApiAvatar_1.id;
+
                 var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
                 var parameters = manager.GetAvatarParameters();
-                destroy_listener.OnDestroyed += () => { foreach (var parameter in parameters) parameter.Unlock(); };
-
-                var avatar_id = manager.field_Private_ApiAvatar_1.id;
+                destroy_listener.OnDestroyed += () => {
+                    foreach (var parameter in parameters) parameter.Unlock();
+                    if (s_Portraits.ContainsKey(avatar_id)) if (s_Portraits[avatar_id].Decrement()) s_Portraits.Remove(avatar_id);
+                };
 
                 /* Take preview image for action menu */
                 /* Note: in this state, everyone should be t-posing and your own head is still there */
-                if (manager.HasCustomExpressions() && !s_Portraits.ContainsKey(avatar_id)) {
-                    /* Enable camera */
-                    s_PreviewCaptureCamera.SetActive(true);
+                if (manager.HasCustomExpressions()) {
+                    if (s_Portraits.ContainsKey(avatar_id)) {
+                        s_Portraits[avatar_id].Increment();
+                    } else {
+                        /* Enable camera */
+                        s_PreviewCaptureCamera.SetActive(true);
 
-                    /* Move camera infront of head */
-                    var descriptor = manager.prop_VRCAvatarDescriptor_0;
-                    var head_height = descriptor.ViewPosition.y;
-                    var head = avatar.transform.position + new Vector3(0, head_height, 0);
-                    var target = head + avatar.transform.forward * 0.3f;
-                    var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
-                    camera.transform.position = target;
-                    camera.transform.LookAt(head);
-                    camera.cullingMask = 1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("PlayerLocal");
-                    camera.orthographicSize = head_height / 8;
-                    
-                    /* Set render target */
-                    var currentRT = RenderTexture.active;
-                    RenderTexture.active = camera.targetTexture;
+                        /* Move camera infront of head */
+                        var descriptor = manager.prop_VRCAvatarDescriptor_0;
+                        var head_height = descriptor.ViewPosition.y;
+                        var head = avatar.transform.position + new Vector3(0, head_height, 0);
+                        var target = head + avatar.transform.forward * 0.3f;
+                        var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
+                        camera.transform.position = target;
+                        camera.transform.LookAt(head);
+                        camera.cullingMask = 1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("PlayerLocal");
+                        camera.orthographicSize = head_height / 8;
 
-                    /* Render the camera's view */
-                    camera.Render();
+                        /* Set render target */
+                        var currentRT = RenderTexture.active;
+                        RenderTexture.active = camera.targetTexture;
 
-                    /* Make a new texture and read the active Render Texture into it */
-                    var image = new Texture2D(camera.targetTexture.width, camera.targetTexture.height, TextureFormat.RGBA32, false, true);
-                    image.ReadPixels(new Rect(0, 0, camera.targetTexture.width, camera.targetTexture.height), 0, 0);
-                    image.Apply();
-                    image.hideFlags = HideFlags.DontUnloadUnusedAsset;
+                        /* Render the camera's view */
+                        camera.Render();
 
-                    MelonLogger.Msg($"Taken portrait of {manager.prop_ApiAvatar_0.name}");
+                        /* Make a new texture and read the active Render Texture into it */
+                        var image = new Texture2D(camera.targetTexture.width, camera.targetTexture.height, TextureFormat.RGBA32, false, true);
+                        image.name = $"{avatar_id} portrait";
+                        image.ReadPixels(new Rect(0, 0, camera.targetTexture.width, camera.targetTexture.height), 0, 0);
+                        image.Apply();
+                        image.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
-                    /* Replace the original active Render Texture */
-                    RenderTexture.active = currentRT;
+                        MelonLogger.Msg($"Taken portrait of {manager.prop_ApiAvatar_0.name}");
 
-                    /* Store image */
-                    s_Portraits.Add(avatar_id, image);
+                        /* Replace the original active Render Texture */
+                        RenderTexture.active = currentRT;
 
-                    /* Disable camera again */
-                    s_PreviewCaptureCamera.SetActive(false);
+                        /* Store image */
+                        s_Portraits.Add(avatar_id, new RefCountedObject<Texture2D>(image));
+
+                        /* Disable camera again */
+                        s_PreviewCaptureCamera.SetActive(false);
+                    }
                 }
             }
         }
