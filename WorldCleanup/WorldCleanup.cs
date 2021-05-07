@@ -15,6 +15,7 @@ using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
 using ActionMenuApi;
+using ActionMenuApi.Types;
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
