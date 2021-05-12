@@ -266,7 +266,6 @@ namespace WorldCleanup {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
             if (param.prop_Boolean_0 != value && ShouldIgnoreSetter(@this)) {
-                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
                 return;
             }
 
@@ -281,7 +280,6 @@ namespace WorldCleanup {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
             if (param.prop_Int32_1 != value && ShouldIgnoreSetter(@this)) {
-                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
                 return;
             }
 
@@ -296,7 +294,6 @@ namespace WorldCleanup {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
             if (param.prop_Single_0 != value && ShouldIgnoreSetter(@this)) {
-                MelonLogger.Msg($"Blocking bool setter @{param.field_Private_String_0} -> {value}");
                 return;
             }
 

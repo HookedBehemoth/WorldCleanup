@@ -329,8 +329,6 @@ namespace WorldCleanup {
                         image.Apply();
                         image.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
-                        MelonLogger.Msg($"Taken portrait of {manager.prop_ApiAvatar_0.name}");
-
                         /* Replace the original active Render Texture */
                         RenderTexture.active = currentRT;
 
