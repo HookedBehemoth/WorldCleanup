@@ -101,12 +101,14 @@ namespace WorldCleanup {
                 var remaining_count = 10;
 
                 foreach (var entry in query) {
-                    var manager = entry.Value.transform.GetComponentInParent<VRCAvatarManager>();
+                    var manager = entry.Value.GetComponentInParent<VRCAvatarManager>();
+
                     /* Ignore SDK2 & avatars w/o custom expressions */
                     if (!manager.HasCustomExpressions())
                         continue;
 
-                    var user_icon = s_Portraits[manager.prop_ApiAvatar_0.id].Get();
+                    var avatar_id = entry.Value.GetComponent<VRC.Core.PipelineManager>().blueprintId;
+                    var user_icon = s_Portraits[avatar_id].Get();
                     
                     AMAPI.AddSubMenuToSubMenu(entry.Key, () => {
                         var controller = manager.field_Private_AvatarPlayableController_0;
@@ -280,11 +282,11 @@ namespace WorldCleanup {
                 var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
                 s_PlayerList[player_name] = avatar;
 
-                var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
+                var manager = avatar.GetComponentInParent<VRCAvatarManager>();
 
                 Parameters.ApplyParameters(manager);
 
-                var avatar_id = manager.field_Private_ApiAvatar_1.id;
+                var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
 
                 var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
                 var parameters = manager.GetAvatarParameters();
@@ -464,8 +466,7 @@ namespace WorldCleanup {
             if (!avatar)
                 return;
 
-            var manager = avatar.transform.GetComponentInParent<VRCAvatarManager>();
-            var api_avatar = manager.field_Private_ApiAvatar_1;
+            var manager = avatar.GetComponentInParent<VRCAvatarManager>();
 
             var avatar_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
             {
