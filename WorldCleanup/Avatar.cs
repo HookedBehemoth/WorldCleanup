@@ -184,8 +184,6 @@ namespace WorldCleanup {
                 parameter.Lock();
         }
 
-        private static readonly HashSet<IntPtr> s_ParameterOverrideList = new();
-
         public static void SetValue(this AvatarParameter parameter, float value) {
             if (parameter == null) return;
             /* Call original delegate to avoid self MITM */
@@ -244,6 +242,8 @@ namespace WorldCleanup {
             }
         }
 
+        private static readonly HashSet<IntPtr> s_ParameterOverrideList = new();
+
         public static void Unlock(this AvatarParameter parameter) {
             /* Reenable parameter override */
             if (parameter.IsLocked())
@@ -260,19 +260,14 @@ namespace WorldCleanup {
             return s_ParameterOverrideList.Contains(parameter.Pointer);
         }
 
-        private static bool ShouldIgnoreSetter(IntPtr parameter) {
-            return s_ParameterOverrideList.Contains(parameter);
-        }
-
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
         internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
 
         internal static void BoolPropertySetter(IntPtr @this, bool value) {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
-            if (param.prop_Boolean_0 != value && ShouldIgnoreSetter(@this)) {
+            if (param.IsLocked())
                 return;
-            }
 
             /* Invoke original function pointer */
             _boolPropertySetterDelegate(@this, value);
@@ -284,9 +279,8 @@ namespace WorldCleanup {
         internal static void IntPropertySetter(IntPtr @this, int value) {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
-            if (param.prop_Int32_1 != value && ShouldIgnoreSetter(@this)) {
+            if (param.IsLocked())
                 return;
-            }
 
             /* Invoke original function pointer */
             _intPropertySetterDelegate(@this, value);
@@ -298,9 +292,8 @@ namespace WorldCleanup {
         internal static void FloatPropertySetter(IntPtr @this, float value) {
             /* Block manually overwritten parameters */
             var param = new AvatarParameter(@this);
-            if (param.prop_Single_0 != value && ShouldIgnoreSetter(@this)) {
+            if (param.IsLocked())
                 return;
-            }
 
             /* Invoke original function pointer */
             _floatPropertySetterDelegate(@this, value);
