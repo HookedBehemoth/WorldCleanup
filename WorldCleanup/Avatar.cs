@@ -187,6 +187,7 @@ namespace WorldCleanup {
         private static readonly HashSet<IntPtr> s_ParameterOverrideList = new();
 
         public static void SetValue(this AvatarParameter parameter, float value) {
+            if (parameter == null) return;
             /* Call original delegate to avoid self MITM */
             switch (parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0) {
                 case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
@@ -204,6 +205,7 @@ namespace WorldCleanup {
         }
 
         public static float GetValue(this AvatarParameter parameter) {
+            if (parameter == null) return 0f;
             return parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0 switch {
                 AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool => parameter.prop_Boolean_0 ? 1f : 0f,
                 AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Int => parameter.prop_Int32_1,
@@ -213,14 +215,17 @@ namespace WorldCleanup {
         }
 
         public static void SetBoolProperty(this AvatarParameter parameter, bool value) {
+            if (parameter == null) return;
             _boolPropertySetterDelegate(parameter.Pointer, value);
         }
 
         public static void SetIntProperty(this AvatarParameter parameter, int value) {
+            if (parameter == null) return;
             _intPropertySetterDelegate(parameter.Pointer, value);
         }
 
         public static void SetFloatProperty(this AvatarParameter parameter, float value) {
+            if (parameter == null) return;
             _floatPropertySetterDelegate(parameter.Pointer, value);
         }
 
