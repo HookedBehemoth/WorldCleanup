@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VRC.Core;
 using VRC.Playables;
 
 namespace WorldCleanup {
@@ -60,7 +59,8 @@ namespace WorldCleanup {
         }
 
         class Parameter {
-            public void Source(AvatarParameter src) {
+            public Parameter() {}
+            public Parameter(AvatarParameter src) {
                 type = src.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                 switch (type) {
                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
@@ -170,7 +170,7 @@ namespace WorldCleanup {
             var config = new AvatarSettings {
                 name = api_avatar.name,
                 version = api_avatar.version,
-                parameters = manager.GetAvatarParameters()?.ToDictionary(o => o.field_Private_String_0, o => { var param = new Parameter(); param.Source(o); return param; }),
+                parameters = manager.GetAvatarParameters()?.ToDictionary(o => o.field_Private_String_0, o => new Parameter(o)),
                 renderers = manager.GetAvatarRenderers().Select(o => o.gameObject.active && o.enabled).ToList(),
             };
 
