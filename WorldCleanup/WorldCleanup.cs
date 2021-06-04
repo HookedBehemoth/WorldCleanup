@@ -30,8 +30,7 @@ using VRC.SDKBase;
 using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
-using ActionMenuApi;
-using ActionMenuApi.Types;
+using ActionMenuApi.Api;
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
@@ -87,7 +86,7 @@ namespace WorldCleanup {
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
 
-            AMAPI.AddSubMenuToMenu(ActionMenuPageType.Main, "World Cleanup", () => {
+            VRCActionMenuPage.AddSubMenu(ActionMenuPage.Main, "Player Toggles", () => {
                 /* Filter inactive avatar objects */
                 s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
 
@@ -97,7 +96,7 @@ namespace WorldCleanup {
                             select player;
 
                 /* Only allow a max of 10 players there at once */
-                /* Note: Consider adding multiple pages */
+                /* TODO: Consider adding multiple pages */
                 var remaining_count = 10;
 
                 foreach (var entry in query) {
@@ -109,15 +108,22 @@ namespace WorldCleanup {
 
                     var avatar_id = entry.Value.GetComponent<VRC.Core.PipelineManager>().blueprintId;
                     var user_icon = s_Portraits[avatar_id].Get();
-                    
-                    AMAPI.AddSubMenuToSubMenu(entry.Key, () => {
+
+                    /* Source default expression icon */
+                    var menu_icons = ActionMenuDriver.prop_ActionMenuDriver_0.field_Public_MenuIcons_0;
+                    var default_expression = menu_icons.defaultExpression;
+
+                    CustomSubMenu.AddSubMenu(entry.Key, () => {
+                        if (entry.Value == null || !entry.Value.active)
+                            return;
+
                         var controller = manager.field_Private_AvatarPlayableController_0;
                         var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-                        AMAPI.AddTogglePedalToSubMenu("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
-                        AMAPI.AddButtonPedalToSubMenu("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
+                        CustomSubMenu.AddToggle("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
+                        CustomSubMenu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
                         AvatarParameter FindParameter(string name) {
                             foreach (var parameter in parameters)
@@ -127,6 +133,20 @@ namespace WorldCleanup {
                         }
 
                         void ExpressionSubmenu(VRCExpressionsMenu expressions_menu) {
+                            if (entry.Value == null || !entry.Value.active)
+                                return;
+
+                            void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback) {
+                                CustomSubMenu.AddFourAxisPuppet(
+                                    control.name,
+                                    callback,
+                                    icon: control.icon ?? default_expression,
+                                    topButtonText: control.labels[0]?.name ?? "Up",
+                                    rightButtonText: control.labels[1]?.name ?? "Right",
+                                    downButtonText: control.labels[2]?.name ?? "Down",
+                                    leftButtonText: control.labels[3]?.name ?? "Left");
+                            }
+
                             foreach (var control in expressions_menu.controls) {
                                 try {
                                 switch (control.type) {
@@ -136,62 +156,50 @@ namespace WorldCleanup {
                                     /* TODO: Add proper implementation.                 */
                                     case VRCExpressionsMenu.Control.ControlType.Toggle: {
                                         var param = FindParameter(control.parameter.name);
-                                        var old = param.GetValue();
-                                        void set_value(bool value) {
-                                            if (value) {
-                                                old = param.GetValue();
-                                                param.SetValue(control.value);
-                                            } else {
-                                                param.SetValue(old);
-                                            }
-                                        }
-                                        bool get_value() { return param.GetValue() == control.value; }
-                                        if (get_value())
-                                            old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
-                                        AMAPI.AddTogglePedalToSubMenu(control.name, get_value(), set_value, icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
+                                        var current_value = param.GetValue();
+                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        var target_value = control.value;
+
+                                        CustomSubMenu.AddToggle(
+                                            control.name,
+                                            current_value == target_value,
+                                            (state) => param.SetValue(state ? target_value : default_value),
+                                            icon: control.icon ?? default_expression);
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.SubMenu: {
-                                        AMAPI.AddSubMenuToSubMenu(control.name, () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
+                                        CustomSubMenu.AddSubMenu(control.name, () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet: {
-                                        var horizontal = FindParameter(control.subParameters[0].name);
-                                        var vertical = FindParameter(control.subParameters[1].name);
-                                        AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
+                                        var horizontal = FindParameter(control.subParameters[0]?.name);
+                                        var vertical = FindParameter(control.subParameters[1]?.name);
+                                        FourAxisControl(control, (value) => {
                                             horizontal.SetFloatProperty(value.x);
                                             vertical.SetFloatProperty(value.y);
-                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon,
-                                        control.labels[0].name,
-                                        control.labels[1].name,
-                                        control.labels[2].name,
-                                        control.labels[3].name);
+                                        });
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet: {
-                                        var up = FindParameter(control.subParameters[0].name);
-                                        var down = FindParameter(control.subParameters[1].name);
-                                        var left = FindParameter(control.subParameters[2].name);
-                                        var right = FindParameter(control.subParameters[3].name);
-                                        AMAPI.AddFourAxisPedalToSubMenu(control.name, (value) => {
+                                        var up = FindParameter(control.subParameters[0]?.name);
+                                        var down = FindParameter(control.subParameters[1]?.name);
+                                        var left = FindParameter(control.subParameters[2]?.name);
+                                        var right = FindParameter(control.subParameters[3]?.name);
+                                        FourAxisControl(control, (value) => {
                                             up.SetFloatProperty(Math.Max(0, value.y));
                                             down.SetFloatProperty(-Math.Min(0, value.y));
                                             left.SetFloatProperty(Math.Max(0, value.x));
                                             right.SetFloatProperty(-Math.Min(0, value.x));
-                                        }, icon: control.icon ?? UiExpansion.DefaultExpressionIcon,
-                                        control.labels[0].name,
-                                        control.labels[1].name,
-                                        control.labels[2].name,
-                                        control.labels[3].name);
+                                        });
                                         break;
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
-                                        var param = FindParameter(control.subParameters[0].name);
-                                        AMAPI.AddRadialPedalToSubMenu(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? UiExpansion.DefaultExpressionIcon);
+                                        var param = FindParameter(control.subParameters[0]?.name);
+                                        CustomSubMenu.AddRadialPuppet(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
                                         break;
                                     }
                                 }
@@ -291,7 +299,10 @@ namespace WorldCleanup {
                 var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
                 var parameters = manager.GetAvatarParameters();
                 destroy_listener.OnDestroyed += () => {
+                    /* Unlock expression parameters */
                     foreach (var parameter in parameters) parameter.Unlock();
+
+                    /* Decrement ref count on avatar portrait */
                     if (s_Portraits.ContainsKey(avatar_id)) if (s_Portraits[avatar_id].Decrement()) s_Portraits.Remove(avatar_id);
                 };
 
@@ -571,19 +582,15 @@ namespace WorldCleanup {
                                     /* TODO: Add proper implementation.                 */
                                     case VRCExpressionsMenu.Control.ControlType.Toggle: {
                                         var param = FindParameter(control.parameter.name);
-                                        var old = param.GetValue();
-                                        void set_value(bool value) {
-                                            if (value) {
-                                                old = param.GetValue();
-                                                param.SetValue(control.value);
-                                            } else {
-                                                param.SetValue(old);
-                                            }
-                                        }
-                                        bool get_value() { return param.GetValue() == control.value; }
-                                        if (get_value())
-                                            old = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
-                                        list.AddToggleListItem(control.name, set_value, get_value, true);
+                                        var current_value = param.GetValue();
+                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        var target_value = control.value;
+
+                                        list.AddToggleListItem(
+                                            control.name,
+                                            (state) => param.SetValue(state ? target_value : default_value),
+                                            () => { return current_value == target_value; },
+                                            true);
                                         break;
                                     }
 
