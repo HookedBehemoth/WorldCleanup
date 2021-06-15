@@ -118,6 +118,7 @@ namespace WorldCleanup {
 
         public static bool HasCustomExpressions(this VRCAvatarManager manager) {
             return manager &&
+                   manager.field_Private_AvatarPlayableController_0 != null &&
                    manager.prop_VRCAvatarDescriptor_0 != null &&
                    manager.prop_VRCAvatarDescriptor_0.customExpressions &&
                    /* Fuck you */
