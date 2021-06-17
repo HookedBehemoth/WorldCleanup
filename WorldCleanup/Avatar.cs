@@ -134,7 +134,7 @@ namespace WorldCleanup {
         }
 
         public static void ApplyParameters(VRCAvatarManager manager) {
-            var api_avatar = manager.field_Private_ApiAvatar_1;
+            var api_avatar = manager.prop_ApiAvatar_0;
 
             /* Look up store */
             var key = api_avatar.id;
@@ -163,7 +163,7 @@ namespace WorldCleanup {
         }
 
         public static void StoreParameters(VRCAvatarManager manager) {
-            var api_avatar = manager.field_Private_ApiAvatar_1;
+            var api_avatar = manager.prop_ApiAvatar_0;
             MelonLogger.Msg($"Storing avatar state for {api_avatar.name}");
 
             var key = api_avatar.id;
@@ -230,7 +230,7 @@ namespace WorldCleanup {
         }
 
         public static void ResetParameters(VRCAvatarManager manager) {
-            var key = manager.field_Private_ApiAvatar_1.id;
+            var key = manager.prop_ApiAvatar_0.id;
 
             if (settings.ContainsKey(key))
                 settings.Remove(key);
