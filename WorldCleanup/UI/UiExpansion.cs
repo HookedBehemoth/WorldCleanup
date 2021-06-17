@@ -40,7 +40,7 @@ namespace WorldCleanup {
             /* Get UIExpansionKit GameObject parent */
             GameObject parent = null;
             do {
-                yield return null;
+                yield return new WaitForSeconds(1f);
                 parent = GameObject.Find("UserInterface/QuickMenu/ModUiPreloadedBundleContents");
             } while (parent == null);
 
