@@ -7,12 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCleanup", "WorldCleanu
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6171B8C9-F18F-4819-AE1F-68D6F9229F34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6171B8C9-F18F-4819-AE1F-68D6F9229F34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6171B8C9-F18F-4819-AE1F-68D6F9229F34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6171B8C9-F18F-4819-AE1F-68D6F9229F34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
