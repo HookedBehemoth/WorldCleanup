@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -354,7 +354,7 @@ namespace WorldCleanup {
         }
 
         private static IEnumerator RegisterJoinLeaveNotifier() {
-            while (NetworkManager.field_Internal_Static_NetworkManager_0 == null) yield return null;
+            while (NetworkManager.field_Internal_Static_NetworkManager_0 == null) yield return new WaitForSeconds(1f);
 
             NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerJoined);
             NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_1.field_Private_HashSet_1_UnityAction_1_T_0.Add((Action<Player>)OnPlayerLeft);
