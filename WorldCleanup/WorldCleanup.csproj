@@ -96,7 +96,6 @@
     <Compile Include="UI\Updater.cs" />
     <Compile Include="WorldAudio.cs" />
     <Compile Include="WorldCleanup.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="mod.assetbundle" />

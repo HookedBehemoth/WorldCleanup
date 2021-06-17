@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -31,6 +31,9 @@ using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
 using ActionMenuApi.Api;
+
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.2", "Behemoth")]
+[assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup {
     public class WorldCleanupMod : MelonMod {
