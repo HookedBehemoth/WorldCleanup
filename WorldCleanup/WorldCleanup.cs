@@ -54,15 +54,10 @@ namespace WorldCleanup {
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
 
-            /* Hook into "OnAvatarInstantiated" */
-            /* Note: Failure is an unrecoverable error */
-            unsafe {
-                var on_avatar_instantiated = (IntPtr)typeof(VRCAvatarManager.MulticastDelegateNPublicSealedVoGaVRBoUnique)
-                    .GetField("NativeMethodInfoPtr_Invoke_Public_Virtual_New_Void_GameObject_VRC_AvatarDescriptor_Boolean_0",
-                        BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                MelonUtils.NativeHookAttach(on_avatar_instantiated, new Action<IntPtr, IntPtr, IntPtr, bool>(OnAvatarInstantiated).Method.MethodHandle.GetFunctionPointer());
-                _onAvatarInstantiatedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarInstantiatedDelegate>(*(IntPtr*)(void*)on_avatar_instantiated);
-            }
+            HarmonyInstance.Patch(
+                typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Void_ApiAvatar_GameObject_Action_1_Boolean_")),
+                new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate),BindingFlags.NonPublic | BindingFlags.Static)));
+
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -278,19 +273,20 @@ namespace WorldCleanup {
             }
         }
 
-        private delegate void AvatarInstantiatedDelegate(IntPtr @this, IntPtr avatarPtr, IntPtr avatarDescriptorPtr, bool loaded);
-        private static AvatarInstantiatedDelegate _onAvatarInstantiatedDelegate;
+        private static void OnAvatarInstantiate(VRCAvatarManager __instance, GameObject __0, ref Il2CppSystem.Delegate __2)
+        {
+            if (__2 == null) return;
 
-        private static void OnAvatarInstantiated(IntPtr @this, IntPtr avatarPtr, IntPtr avatarDescriptorPtr, bool loaded) {
-            /* Invoke original function pointer. */
-            _onAvatarInstantiatedDelegate(@this, avatarPtr, avatarDescriptorPtr, loaded);
+            __2 = __2.CombineImpl((Il2CppSystem.Action<bool>)new Action<bool>((flag) =>
+            {
+                if (__instance == null || __0 == null || !flag)
+                    return;
 
-            if (loaded) {
-                var avatar = new GameObject(avatarPtr);
+                var manager = __instance;
+                var avatar = manager.prop_GameObject_0;
                 var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
                 s_PlayerList[player_name] = avatar;
 
-                var manager = avatar.GetComponentInParent<VRCAvatarManager>();
 
                 Parameters.ApplyParameters(manager);
 
@@ -350,7 +346,7 @@ namespace WorldCleanup {
                         s_PreviewCaptureCamera.SetActive(false);
                     }
                 }
-            }
+            }));
         }
 
         private static IEnumerator RegisterJoinLeaveNotifier() {
