@@ -134,7 +134,9 @@ namespace WorldCleanup {
         }
 
         public static void ApplyParameters(VRCAvatarManager manager) {
-            var api_avatar = manager.prop_ApiAvatar_0;
+            var api_avatar = manager?.prop_ApiAvatar_0;
+            if (api_avatar == null)
+                return;
 
             /* Look up store */
             var key = api_avatar.id;
@@ -163,10 +165,11 @@ namespace WorldCleanup {
         }
 
         public static void StoreParameters(VRCAvatarManager manager) {
-            var api_avatar = manager.prop_ApiAvatar_0;
-            MelonLogger.Msg($"Storing avatar state for {api_avatar.name}");
+            var api_avatar = manager?.prop_ApiAvatar_0;
+            if (api_avatar == null)
+                return;
 
-            var key = api_avatar.id;
+            MelonLogger.Msg($"Storing avatar state for {api_avatar.name}");
 
             var config = new AvatarSettings {
                 name = api_avatar.name,
@@ -175,6 +178,7 @@ namespace WorldCleanup {
                 renderers = manager.GetAvatarRenderers().Select(o => o.gameObject.active && o.enabled).ToList(),
             };
 
+            var key = api_avatar.id;
             if (settings.ContainsKey(key)) {
                 settings[key] = config;
             } else {
@@ -230,7 +234,11 @@ namespace WorldCleanup {
         }
 
         public static void ResetParameters(VRCAvatarManager manager) {
-            var key = manager.prop_ApiAvatar_0.id;
+            var api_avatar = manager?.prop_ApiAvatar_0;
+            if (api_avatar == null)
+                return;
+
+            var key = api_avatar.id;
 
             if (settings.ContainsKey(key))
                 settings.Remove(key);
