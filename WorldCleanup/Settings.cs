@@ -51,55 +51,42 @@ namespace WorldCleanup {
             MelonPreferences.CreateEntry(Category, UpdateInterval, 1f);
         }
 
-        public static bool s_DisableLights {
-            get => MelonPreferences.GetEntryValue<bool>(Category, DisableLights);
-            set => MelonPreferences.SetEntryValue(Category, DisableLights, value);
+        public static void LoadConfig() {
+            s_DisableLights = MelonPreferences.GetEntryValue<bool>(Category, DisableLights);
+            s_DisablePostProcessing = MelonPreferences.GetEntryValue<bool>(Category, DisablePostProcessing);
+            s_DisableMirrors = MelonPreferences.GetEntryValue<bool>(Category, DisableMirrors);
+            s_EnableAudioOverride = MelonPreferences.GetEntryValue<bool>(Category, EnableAudioOverride);
+            s_VoiceGain = MelonPreferences.GetEntryValue<float>(Category, VoiceGain);
+            s_VoiceFar = MelonPreferences.GetEntryValue<float>(Category, VoiceFar);
+            s_VoiceNear = MelonPreferences.GetEntryValue<float>(Category, VoiceNear);
+            s_VoiceVolRadius = MelonPreferences.GetEntryValue<float>(Category, VoiceVolRadius);
+            s_VoiceLowpass = MelonPreferences.GetEntryValue<bool>(Category, VoiceLowpass);
+            s_UpdateInterval = MelonPreferences.GetEntryValue<float>(Category, UpdateInterval);
         }
 
-        public static bool s_DisablePostProcessing {
-            get => MelonPreferences.GetEntryValue<bool>(Category, DisablePostProcessing);
-            set => MelonPreferences.SetEntryValue(Category, DisablePostProcessing, value);
+        public static void FlushConfig() {
+            MelonPreferences.SetEntryValue(Category, DisableLights, s_DisableLights);
+            MelonPreferences.SetEntryValue(Category, DisablePostProcessing, s_DisablePostProcessing);
+            MelonPreferences.SetEntryValue(Category, DisableMirrors, s_DisableMirrors);
+            MelonPreferences.SetEntryValue(Category, EnableAudioOverride, s_EnableAudioOverride);
+            MelonPreferences.SetEntryValue(Category, VoiceGain, s_VoiceGain);
+            MelonPreferences.SetEntryValue(Category, VoiceFar, s_VoiceFar);
+            MelonPreferences.SetEntryValue(Category, VoiceNear, s_VoiceNear);
+            MelonPreferences.SetEntryValue(Category, VoiceVolRadius, s_VoiceVolRadius);
+            MelonPreferences.SetEntryValue(Category, VoiceLowpass, s_VoiceLowpass);
+            MelonPreferences.SetEntryValue(Category, UpdateInterval, s_UpdateInterval);
         }
 
-        public static bool s_DisableMirrors {
-            get => MelonPreferences.GetEntryValue<bool>(Category, DisableMirrors);
-            set => MelonPreferences.SetEntryValue(Category, DisableMirrors, value);
-        }
-
-        public static bool s_EnableAudioOverride {
-            get => MelonPreferences.GetEntryValue<bool>(Category, EnableAudioOverride);
-            set => MelonPreferences.SetEntryValue(Category, EnableAudioOverride, value);
-        }
-
-        public static float s_VoiceGain {
-            get => MelonPreferences.GetEntryValue<float>(Category, VoiceGain);
-            set => MelonPreferences.SetEntryValue(Category, VoiceGain, value);
-        }
-
-        public static float s_VoiceFar {
-            get => MelonPreferences.GetEntryValue<float>(Category, VoiceFar);
-            set => MelonPreferences.SetEntryValue(Category, VoiceFar, value);
-        }
-
-        public static float s_VoiceNear {
-            get => MelonPreferences.GetEntryValue<float>(Category, VoiceNear);
-            set => MelonPreferences.SetEntryValue(Category, VoiceNear, value);
-        }
-
-        public static float s_VoiceVolRadius {
-            get => MelonPreferences.GetEntryValue<float>(Category, VoiceVolRadius);
-            set => MelonPreferences.SetEntryValue(Category, VoiceVolRadius, value);
-        }
-
-        public static bool s_VoiceLowpass {
-            get => MelonPreferences.GetEntryValue<bool>(Category, VoiceLowpass);
-            set => MelonPreferences.SetEntryValue(Category, VoiceLowpass, value);
-        }
-
-        public static float s_UpdateInterval {
-            get => MelonPreferences.GetEntryValue<float>(Category, UpdateInterval);
-            set => MelonPreferences.SetEntryValue(Category, UpdateInterval, value);
-        }
+        public static bool s_DisableLights;
+        public static bool s_DisablePostProcessing;
+        public static bool s_DisableMirrors;
+        public static bool s_EnableAudioOverride;
+        public static float s_VoiceGain;
+        public static float s_VoiceFar;
+        public static float s_VoiceNear;
+        public static float s_VoiceVolRadius;
+        public static bool s_VoiceLowpass;
+        public static float s_UpdateInterval;
 
         public static void StoreConfigFile(string file_name, string data) {
             var file_path = Path.Combine(MelonUtils.UserDataDirectory, file_name);

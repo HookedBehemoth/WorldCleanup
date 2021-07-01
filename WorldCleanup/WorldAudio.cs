@@ -86,8 +86,8 @@ namespace WorldCleanup {
             player.SetVoiceLowpass(s_AudioConfig.voice_lowpass);
         }
 
-        private static void ApplySettingsToAll() {
-            VRCPlayerApi.AllPlayers.ForEach((Action<VRCPlayerApi>)ApplySettings);
+        public static void ApplySettingsToAll() {
+            VRCPlayerApi.AllPlayers?.ForEach((Action<VRCPlayerApi>)ApplySettings);
         }
 
         public static void RegisterSettings(ICustomShowableLayoutedMenu parent, Action on_exit) {

@@ -47,6 +47,9 @@ namespace WorldCleanup {
         public override void OnApplicationStart() {
             /* Register settings */
             Settings.RegisterConfig();
+            
+            /* Load settings values */
+            Settings.LoadConfig();
 
             /* Load audio settings */
             WorldAudio.LoadConfig();
@@ -60,7 +63,6 @@ namespace WorldCleanup {
             HarmonyInstance.Patch(
                 typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Void_ApiAvatar_GameObject_Action_1_Boolean_")),
                 new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate),BindingFlags.NonPublic | BindingFlags.Static)));
-
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -226,6 +228,24 @@ namespace WorldCleanup {
 
             /* Flush audio config */
             WorldAudio.FlushConfig();
+
+            /* Store settings */
+            Settings.FlushConfig();
+        }
+
+        public override void OnPreferencesLoaded()
+            => LoadAndApplyPreferences();
+
+        public override void OnPreferencesSaved()
+            => LoadAndApplyPreferences();
+        
+        private void LoadAndApplyPreferences() {
+            /* Load settings values */
+            Settings.LoadConfig();
+
+            /* Load audio settings */
+            WorldAudio.LoadConfig();
+            WorldAudio.ApplySettingsToAll();
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) {
