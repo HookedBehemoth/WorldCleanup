@@ -201,7 +201,7 @@ namespace WorldCleanup {
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                         var param = FindParameter(control.subParameters[0]?.name);
-                                        CustomSubMenu.AddRadialPuppet(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
+                                        CustomSubMenu.AddRestrictedRadialPuppet(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
                                         break;
                                     }
                                 }
