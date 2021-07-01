@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -157,11 +157,13 @@ namespace WorldCleanup {
                                         var current_value = param.GetValue();
                                         var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
                                         var target_value = control.value;
+                                        void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
+                                        void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
 
                                         CustomSubMenu.AddToggle(
                                             control.name,
                                             current_value == target_value,
-                                            (state) => param.SetValue(state ? target_value : default_value),
+                                            param.prop_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool ? SetBool : SetIntFloat,
                                             icon: control.icon ?? default_expression);
                                         break;
                                     }
@@ -584,10 +586,12 @@ namespace WorldCleanup {
                                         var current_value = param.GetValue();
                                         var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
                                         var target_value = control.value;
+                                        void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
+                                        void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
 
                                         list.AddToggleListItem(
                                             control.name,
-                                            (state) => param.SetValue(state ? target_value : default_value),
+                                            param.prop_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool ? SetBool : SetIntFloat,
                                             () => { return current_value == target_value; },
                                             true);
                                         break;
