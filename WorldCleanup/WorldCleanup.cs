@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -32,7 +32,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
 using ActionMenuApi.Api;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.2", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.3", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup {
@@ -61,8 +61,8 @@ namespace WorldCleanup {
             UiExpansion.LoadUiObjects();
 
             HarmonyInstance.Patch(
-                typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Void_ApiAvatar_GameObject_Action_1_Boolean_")),
-                new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate),BindingFlags.NonPublic | BindingFlags.Static)));
+                typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Boolean_ApiAvatar_GameObject_")),
+                postfix: new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate), BindingFlags.NonPublic | BindingFlags.Static)));
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -298,80 +298,73 @@ namespace WorldCleanup {
             }
         }
 
-        private static void OnAvatarInstantiate(VRCAvatarManager __instance, GameObject __0, ref Il2CppSystem.Delegate __2)
-        {
-            if (__2 == null) return;
+        private static void OnAvatarInstantiate(VRCAvatarManager __instance, VRC.Core.ApiAvatar __0, GameObject __1) {
+            if (__instance == null || __0 == null || __1 == null)
+                return;
 
-            __2 = __2.CombineImpl((Il2CppSystem.Action<bool>)new Action<bool>((flag) =>
-            {
-                if (__instance == null || __0 == null || !flag)
-                    return;
+            var manager = __instance;
+            var avatar = manager.prop_GameObject_0;
+            var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
+            s_PlayerList[player_name] = avatar;
 
-                var manager = __instance;
-                var avatar = manager.prop_GameObject_0;
-                var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
-                s_PlayerList[player_name] = avatar;
+            Parameters.ApplyParameters(manager);
 
+            var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
 
-                Parameters.ApplyParameters(manager);
+            var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
+            var parameters = manager.GetAvatarParameters();
+            destroy_listener.OnDestroyed += () => {
+                /* Unlock expression parameters */
+                foreach (var parameter in parameters) parameter.Unlock();
 
-                var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
+                /* Decrement ref count on avatar portrait */
+                if (s_Portraits.ContainsKey(avatar_id)) if (s_Portraits[avatar_id].Decrement()) s_Portraits.Remove(avatar_id);
+            };
 
-                var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
-                var parameters = manager.GetAvatarParameters();
-                destroy_listener.OnDestroyed += () => {
-                    /* Unlock expression parameters */
-                    foreach (var parameter in parameters) parameter.Unlock();
+            /* Take preview image for action menu */
+            /* Note: in this state, everyone should be t-posing and your own head is still there */
+            if (manager.HasCustomExpressions()) {
+                if (s_Portraits.ContainsKey(avatar_id)) {
+                    s_Portraits[avatar_id].Increment();
+                } else {
+                    /* Enable camera */
+                    s_PreviewCaptureCamera.SetActive(true);
 
-                    /* Decrement ref count on avatar portrait */
-                    if (s_Portraits.ContainsKey(avatar_id)) if (s_Portraits[avatar_id].Decrement()) s_Portraits.Remove(avatar_id);
-                };
+                    /* Move camera infront of head */
+                    var descriptor = manager.prop_VRCAvatarDescriptor_0;
+                    var head_height = descriptor.ViewPosition.y;
+                    var head = avatar.transform.position + new Vector3(0, head_height, 0);
+                    var target = head + avatar.transform.forward * 0.3f;
+                    var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
+                    camera.transform.position = target;
+                    camera.transform.LookAt(head);
+                    camera.cullingMask = 1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("PlayerLocal");
+                    camera.orthographicSize = head_height / 8;
 
-                /* Take preview image for action menu */
-                /* Note: in this state, everyone should be t-posing and your own head is still there */
-                if (manager.HasCustomExpressions()) {
-                    if (s_Portraits.ContainsKey(avatar_id)) {
-                        s_Portraits[avatar_id].Increment();
-                    } else {
-                        /* Enable camera */
-                        s_PreviewCaptureCamera.SetActive(true);
+                    /* Set render target */
+                    var currentRT = RenderTexture.active;
+                    RenderTexture.active = camera.targetTexture;
 
-                        /* Move camera infront of head */
-                        var descriptor = manager.prop_VRCAvatarDescriptor_0;
-                        var head_height = descriptor.ViewPosition.y;
-                        var head = avatar.transform.position + new Vector3(0, head_height, 0);
-                        var target = head + avatar.transform.forward * 0.3f;
-                        var camera = s_PreviewCaptureCamera.GetComponent<Camera>();
-                        camera.transform.position = target;
-                        camera.transform.LookAt(head);
-                        camera.cullingMask = 1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("PlayerLocal");
-                        camera.orthographicSize = head_height / 8;
+                    /* Render the camera's view */
+                    camera.Render();
 
-                        /* Set render target */
-                        var currentRT = RenderTexture.active;
-                        RenderTexture.active = camera.targetTexture;
+                    /* Make a new texture and read the active Render Texture into it */
+                    var image = new Texture2D(camera.targetTexture.width, camera.targetTexture.height, TextureFormat.RGBA32, false, true);
+                    image.name = $"{avatar_id} portrait";
+                    image.ReadPixels(new Rect(0, 0, camera.targetTexture.width, camera.targetTexture.height), 0, 0);
+                    image.Apply();
+                    image.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
-                        /* Render the camera's view */
-                        camera.Render();
+                    /* Replace the original active Render Texture */
+                    RenderTexture.active = currentRT;
 
-                        /* Make a new texture and read the active Render Texture into it */
-                        var image = new Texture2D(camera.targetTexture.width, camera.targetTexture.height, TextureFormat.RGBA32, false, true);
-                        image.name = $"{avatar_id} portrait";
-                        image.ReadPixels(new Rect(0, 0, camera.targetTexture.width, camera.targetTexture.height), 0, 0);
-                        image.Apply();
-                        image.hideFlags = HideFlags.DontUnloadUnusedAsset;
+                    /* Store image */
+                    s_Portraits.Add(avatar_id, new RefCountedObject<Texture2D>(image));
 
-                        /* Replace the original active Render Texture */
-                        RenderTexture.active = currentRT;
-
-                        /* Store image */
-                        s_Portraits.Add(avatar_id, new RefCountedObject<Texture2D>(image));
-
-                        /* Disable camera again */
-                        s_PreviewCaptureCamera.SetActive(false);
-                    }
+                    /* Disable camera again */
+                    s_PreviewCaptureCamera.SetActive(false);
                 }
-            }));
+            }
         }
 
         private static IEnumerator RegisterJoinLeaveNotifier() {

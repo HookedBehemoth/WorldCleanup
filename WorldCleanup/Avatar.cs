@@ -110,7 +110,7 @@ namespace WorldCleanup {
 
         public static IEnumerable<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager) {
             var parameters = manager.field_Private_AvatarPlayableController_0?
-                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0
+                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0?
                                        .Values;
 
             return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
