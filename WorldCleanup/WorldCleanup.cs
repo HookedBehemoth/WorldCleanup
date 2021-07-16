@@ -32,7 +32,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
 using ActionMenuApi.Api;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.3", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.4", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup {
@@ -47,7 +47,7 @@ namespace WorldCleanup {
         public override void OnApplicationStart() {
             /* Register settings */
             Settings.RegisterConfig();
-            
+
             /* Load settings values */
             Settings.LoadConfig();
 
@@ -117,8 +117,7 @@ namespace WorldCleanup {
                         if (entry.Value == null || !entry.Value.active)
                             return;
 
-                        var controller = manager.field_Private_AvatarPlayableController_0;
-                        var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                        var parameters = manager.GetAllAvatarParameters();
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
@@ -238,7 +237,7 @@ namespace WorldCleanup {
 
         public override void OnPreferencesSaved()
             => LoadAndApplyPreferences();
-        
+
         private void LoadAndApplyPreferences() {
             /* Load settings values */
             Settings.LoadConfig();
@@ -569,11 +568,10 @@ namespace WorldCleanup {
             {
                 /* Ignore SDK2 & avatars w/o custom expressions */
                 if (manager.HasCustomExpressions()) {
-                    var controller = manager.field_Private_AvatarPlayableController_0;
-                    var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                    var parameters = manager.GetAllAvatarParameters();
                     var filtered = Parameters.FilterDefaultParameters(parameters);
 
-                    var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
+                    var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
                     avatar_list.AddSimpleButton($"Parameter Menu", () => {
                         /* Unlock all parameters to prevent state machine tomfoolery */

@@ -49,14 +49,8 @@ namespace WorldCleanup {
             "VRCFaceBlendV",
         };
 
-        public static List<AvatarParameter> FilterDefaultParameters(Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter>.ValueCollection src) {
-            /* Note: IL2CPP Dictionary misses "Which" */
-            var parameters = new List<AvatarParameter>();
-            foreach (var param in src)
-                if (!DefaultParameterNames.Contains(param.field_Private_String_0))
-                    parameters.Add(param);
-            return parameters;
-        }
+        public static List<AvatarParameter> FilterDefaultParameters(IEnumerable<AvatarParameter> src)
+            => src.Where(param => !DefaultParameterNames.Contains(param.field_Private_String_0)).ToList();
 
         class Parameter {
             public Parameter() {}
@@ -108,13 +102,19 @@ namespace WorldCleanup {
 
         static private Dictionary<string, AvatarSettings> settings;
 
-        public static IEnumerable<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager) {
+        public static IEnumerable<AvatarParameter> GetAllAvatarParameters(this VRCAvatarManager manager) {
             var parameters = manager.field_Private_AvatarPlayableController_0?
-                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0?
-                                       .Values;
+                                    .field_Private_Dictionary_2_Int32_AvatarParameter_0;
 
-            return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
+            if (parameters == null)
+                yield break;
+
+            foreach (var param in parameters)
+                yield return param.value;
         }
+
+        public static List<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager)
+            => FilterDefaultParameters(manager.GetAllAvatarParameters());
 
         public static bool HasCustomExpressions(this VRCAvatarManager manager) {
             return manager &&
@@ -243,8 +243,7 @@ namespace WorldCleanup {
             if (settings.ContainsKey(key))
                 settings.Remove(key);
 
-            var defaults = manager.field_Private_AvatarPlayableController_0?
-                                  .field_Private_VRCAvatarDescriptor_0
+            var defaults = manager.prop_VRCAvatarDescriptor_0?
                                   .expressionParameters;
             foreach (var parameter in manager.GetAvatarParameters()) {
                 parameter.SetValue(defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
