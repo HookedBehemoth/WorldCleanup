@@ -14,13 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System.Linq;
 using MelonLoader;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VRC.Playables;
+using UnhollowerRuntimeLib;
 
 namespace WorldCleanup {
     internal static class Parameters {
@@ -49,12 +50,16 @@ namespace WorldCleanup {
             "VRCFaceBlendV",
         };
 
-        public static List<AvatarParameter> FilterDefaultParameters(Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter>.ValueCollection src) {
+        public static List<AvatarParameter> FilterDefaultParameters(List<AvatarParameter> AvatarParameterList) {
             /* Note: IL2CPP Dictionary misses "Which" */
             var parameters = new List<AvatarParameter>();
-            foreach (var param in src)
+            foreach (var param in AvatarParameterList)
+            {
                 if (!DefaultParameterNames.Contains(param.field_Private_String_0))
+                {
                     parameters.Add(param);
+                }
+            }
             return parameters;
         }
 
@@ -108,11 +113,42 @@ namespace WorldCleanup {
 
         static private Dictionary<string, AvatarSettings> settings;
 
+
+        public static List<AvatarParameter> Get_All_AvatarParameters(this Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter> dict)
+        {
+            var tmp = new List<AvatarParameter>();
+
+            if (dict != null)
+            {
+                if (dict.count != 0)
+                {
+                    foreach (var entry in dict)
+                    {
+                        if (entry != null)
+                        {
+                            if (entry.value != null)
+                            {
+                                if (entry.value.GetIl2CppType() == Il2CppType.Of<AvatarParameter>())
+                                {
+                                    if (!tmp.Contains(entry.value))
+                                    {
+                                        tmp.Add(entry.value);
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    return tmp;
+                }
+            }
+            return null;
+        }
+
+
         public static IEnumerable<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager) {
             var parameters = manager.field_Private_AvatarPlayableController_0?
-                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0?
-                                       .Values;
-
+                                       .field_Private_Dictionary_2_Int32_AvatarParameter_0?.Get_All_AvatarParameters();
             return parameters != null ? FilterDefaultParameters(parameters) : Enumerable.Empty<AvatarParameter>();
         }
 

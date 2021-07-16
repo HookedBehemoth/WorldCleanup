@@ -31,8 +31,9 @@ using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using WorldCleanup.UI;
 using ActionMenuApi.Api;
+using harmonyinsta = Harmony.HarmonyInstance;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.3", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.4", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup {
@@ -43,6 +44,8 @@ namespace WorldCleanup {
         private static List<VRC_MirrorReflection> s_Mirrors;
         private static Dictionary<string, RefCountedObject<Texture2D>> s_Portraits;
         private static GameObject s_PreviewCaptureCamera;
+
+        private HarmonyLib.Harmony harmony1;
 
         public override void OnApplicationStart() {
             /* Register settings */
@@ -60,7 +63,12 @@ namespace WorldCleanup {
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
 
-            HarmonyInstance.Patch(
+            if (harmony1 == null)
+            {
+                harmony1 = new HarmonyLib.Harmony(BuildInfo.Name + " OnAvatarInstantiateHook");
+            }
+
+            harmony1.Patch(
                 typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Boolean_ApiAvatar_GameObject_")),
                 postfix: new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate), BindingFlags.NonPublic | BindingFlags.Static)));
 
@@ -118,7 +126,7 @@ namespace WorldCleanup {
                             return;
 
                         var controller = manager.field_Private_AvatarPlayableController_0;
-                        var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                        var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Get_All_AvatarParameters();
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
@@ -298,6 +306,7 @@ namespace WorldCleanup {
             }
         }
 
+
         private static void OnAvatarInstantiate(VRCAvatarManager __instance, VRC.Core.ApiAvatar __0, GameObject __1) {
             if (__instance == null || __0 == null || __1 == null)
                 return;
@@ -306,11 +315,9 @@ namespace WorldCleanup {
             var avatar = manager.prop_GameObject_0;
             var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
             s_PlayerList[player_name] = avatar;
-
             Parameters.ApplyParameters(manager);
 
             var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
-
             var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
             var parameters = manager.GetAvatarParameters();
             destroy_listener.OnDestroyed += () => {
@@ -320,7 +327,6 @@ namespace WorldCleanup {
                 /* Decrement ref count on avatar portrait */
                 if (s_Portraits.ContainsKey(avatar_id)) if (s_Portraits[avatar_id].Decrement()) s_Portraits.Remove(avatar_id);
             };
-
             /* Take preview image for action menu */
             /* Note: in this state, everyone should be t-posing and your own head is still there */
             if (manager.HasCustomExpressions()) {
@@ -570,7 +576,7 @@ namespace WorldCleanup {
                 /* Ignore SDK2 & avatars w/o custom expressions */
                 if (manager.HasCustomExpressions()) {
                     var controller = manager.field_Private_AvatarPlayableController_0;
-                    var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Values;
+                    var parameters = controller.field_Private_Dictionary_2_Int32_AvatarParameter_0.Get_All_AvatarParameters();
                     var filtered = Parameters.FilterDefaultParameters(parameters);
 
                     var avatar_descriptor = controller.field_Private_VRCAvatarDescriptor_0;
