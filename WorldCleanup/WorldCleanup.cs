@@ -311,7 +311,7 @@ namespace WorldCleanup {
             var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
 
             var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
-            var parameters = manager.GetAvatarParameters();
+            var parameters = manager.GetAvatarParameters().ToArray();
             destroy_listener.OnDestroyed += () => {
                 /* Unlock expression parameters */
                 foreach (var parameter in parameters) parameter.Unlock();
