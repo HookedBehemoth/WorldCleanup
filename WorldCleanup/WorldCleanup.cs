@@ -137,13 +137,13 @@ namespace WorldCleanup {
 
                             void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback) {
                                 CustomSubMenu.AddFourAxisPuppet(
-                                    control.name,
+                                    control.TruncatedName(),
                                     callback,
                                     icon: control.icon ?? default_expression,
-                                    topButtonText: control.labels[0]?.name ?? "Up",
-                                    rightButtonText: control.labels[1]?.name ?? "Right",
-                                    downButtonText: control.labels[2]?.name ?? "Down",
-                                    leftButtonText: control.labels[3]?.name ?? "Left");
+                                    topButtonText: control.labels[0]?.TruncatedName() ?? "Up",
+                                    rightButtonText: control.labels[1]?.TruncatedName() ?? "Right",
+                                    downButtonText: control.labels[2]?.TruncatedName() ?? "Down",
+                                    leftButtonText: control.labels[3]?.TruncatedName() ?? "Left");
                             }
 
                             foreach (var control in expressions_menu.controls) {
@@ -156,13 +156,13 @@ namespace WorldCleanup {
                                     case VRCExpressionsMenu.Control.ControlType.Toggle: {
                                         var param = FindParameter(control.parameter.name);
                                         var current_value = param.GetValue();
-                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
                                         var target_value = control.value;
                                         void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
                                         void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
 
                                         CustomSubMenu.AddToggle(
-                                            control.name,
+                                            control.TruncatedName(),
                                             current_value == target_value,
                                             param.prop_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool ? SetBool : SetIntFloat,
                                             icon: control.icon ?? default_expression);
@@ -170,7 +170,7 @@ namespace WorldCleanup {
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.SubMenu: {
-                                        CustomSubMenu.AddSubMenu(control.name, () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
+                                        CustomSubMenu.AddSubMenu(control.TruncatedName(), () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
                                         break;
                                     }
 
@@ -200,7 +200,7 @@ namespace WorldCleanup {
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                         var param = FindParameter(control.subParameters[0]?.name);
-                                        CustomSubMenu.AddRestrictedRadialPuppet(control.name, param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
+                                        CustomSubMenu.AddRestrictedRadialPuppet(control.TruncatedName(), param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
                                         break;
                                     }
                                 }
@@ -600,13 +600,13 @@ namespace WorldCleanup {
                                     case VRCExpressionsMenu.Control.ControlType.Toggle: {
                                         var param = FindParameter(control.parameter.name);
                                         var current_value = param.GetValue();
-                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name).defaultValue;
+                                        var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
                                         var target_value = control.value;
                                         void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
                                         void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
 
                                         list.AddToggleListItem(
-                                            control.name,
+                                            control.TruncatedName(),
                                             param.prop_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool ? SetBool : SetIntFloat,
                                             () => { return current_value == target_value; },
                                             true);
@@ -614,8 +614,9 @@ namespace WorldCleanup {
                                     }
 
                                     case VRCExpressionsMenu.Control.ControlType.SubMenu: {
-                                        list.AddSimpleButton(control.name, () => {
+                                        list.AddSimpleButton(control.TruncatedName(), () => {
                                             var sub_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                                            sub_menu.AddHeader(control.TruncatedName());
 
                                             ExpressionSubmenu(sub_menu, control.subMenu);
 
@@ -627,12 +628,12 @@ namespace WorldCleanup {
 
                                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet: {
                                         var param = FindParameter(control.subParameters[0].name);
-                                        list.AddSliderListItem(control.name, param.SetValue, param.GetValue, 0, 1);
+                                        list.AddSliderListItem(control.TruncatedName(), param.SetValue, param.GetValue, 0, 1);
                                         break;
                                     }
 
                                     default:
-                                        list.AddLabel($"\n\n{control.name}: {control.type} unsupported");
+                                        list.AddLabel($"\n\n{control.TruncatedName()}: {control.type} unsupported");
                                         break;
                                 }
                             }
@@ -644,7 +645,7 @@ namespace WorldCleanup {
                         menu_list.AddSimpleButton($"Raw Parameters: {filtered.Count}", () => {
                             var parameter_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                             foreach (var parameter in filtered) {
-                                var name = parameter.field_Private_String_0;
+                                var name = parameter.TruncatedName();
                                 var type = parameter.field_Private_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                                 switch (type) {
                                     case AvatarParameter.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
