@@ -86,7 +86,7 @@ namespace WorldCleanup {
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
 
-            VRCActionMenuPage.AddSubMenu(ActionMenuPage.Main, "Player Toggles", () => {
+            AMUtils.AddToModsFolder("Player Toggles", () => {
                 /* Filter inactive avatar objects */
                 s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
 
