@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -383,7 +383,7 @@ namespace WorldCleanup {
 
         private void MainMenu() {
             var settings_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-            settings_menu.AddLabel("\n World Cleanup");
+            settings_menu.AddHeader("World Cleanup");
 
             /* Light shadows */
             if (s_Lights.Count() > 0) {
@@ -441,6 +441,7 @@ namespace WorldCleanup {
                 var player = Networking.LocalPlayer;
 
                 var player_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                player_menu.AddHeader("Player Mod Settings");
 
                 player_menu.AddFloatDiffListItem("Jump Impulse", player.SetJumpImpulse, player.GetJumpImpulse);
                 player_menu.AddFloatDiffListItem("Run Speed", player.SetRunSpeed, player.GetRunSpeed);
@@ -476,6 +477,8 @@ namespace WorldCleanup {
             s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
 
             var player_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+            player_list.AddHeader("Player List");
+
             foreach (var entry in s_PlayerList)
                 player_list.AddSimpleButton(entry.Key, () => { AvatarList(entry.Key, false); });
 
@@ -491,6 +494,8 @@ namespace WorldCleanup {
             var manager = avatar.GetComponentInParent<VRCAvatarManager>();
 
             var avatar_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+            avatar_list.AddHeader(player_name);
+
             {
                 /* Animator Toggle */
                 var animator = avatar.GetComponent<Animator>();
@@ -507,7 +512,7 @@ namespace WorldCleanup {
                 if (smr.Count() > 0) {
                     avatar_list.AddSimpleButton($"SkinnedMeshRenderer: {smr.Count()}", () => {
                         var mesh_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-                        mesh_list.AddLabel("SkinnedMeshRenderers");
+                        mesh_list.AddHeader("SkinnedMeshRenderers");
                         foreach (var renderer in smr) {
                             void set_value(bool state) { renderer.gameObject.active = renderer.enabled = state; }
                             bool get_value() { return renderer.enabled && renderer.gameObject.active; };
@@ -541,7 +546,7 @@ namespace WorldCleanup {
                 void ShowGenericRendererToggleList(string type, IEnumerable<Renderer> list) {
                     var mesh_list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                     if (type != null)
-                        mesh_list.AddLabel(type);
+                        mesh_list.AddHeader(type);
                     foreach (var mesh in list) {
                         var name = type != null ? mesh.gameObject.name : $"{mesh.GetIl2CppType().Name}: {mesh.gameObject.name}";
                         mesh_list.AddToggleListItem(name, (state) => { mesh.enabled = mesh.gameObject.active = state; }, () => mesh.enabled && mesh.gameObject.active, true);

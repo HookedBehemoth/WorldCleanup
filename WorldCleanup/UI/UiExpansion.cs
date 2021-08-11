@@ -25,7 +25,7 @@ using System.Collections;
 
 namespace WorldCleanup {
     static class UiExpansion {
-        private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem;
+        private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem, Header, CategoryHeader;
         public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon;
         public static GameObject PreviewCamera;
 
@@ -60,12 +60,8 @@ namespace WorldCleanup {
             GameObject LoadUiElement(string str) {
                 var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
 
-                /* Apply "Noto Sans Regular" font to each Text */
-                foreach (var text in bundle_object.GetComponentsInChildren<Text>())
-                    text.font = noto_sans;
-
                 /* Attach it to QuickMenu to inherit render queue changes */
-                var instantiated_object = UnityEngine.Object.Instantiate(bundle_object, parent.transform);
+                var instantiated_object = GameObject.Instantiate(bundle_object, parent.transform);
                 instantiated_object.SetActive(true);
                 instantiated_object.hideFlags |= HideFlags.DontUnloadUnusedAsset;
 
@@ -77,7 +73,9 @@ namespace WorldCleanup {
             ButtonToggleItem = LoadUiElement("Assets/UI/ButtonToggleItem.prefab");
             ComponentToggle = LoadUiElement("Assets/UI/ComponentToggle.prefab");
             DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
-            
+            Header = LoadUiElement("Header");
+            CategoryHeader = LoadUiElement("CategoryHeader");
+
             T LoadGeneric<T>(string path) where T: UnityEngine.Object {
                 var asset = asset_bundle.LoadAsset<T>(path);
                 asset.hideFlags |= HideFlags.DontUnloadUnusedAsset;
@@ -91,7 +89,7 @@ namespace WorldCleanup {
             PreviewCamera = LoadGeneric<GameObject>("Assets/Avatar Preview/AvatarPreviewCamera.prefab");
         }
 
-        public static void AddIntDiffListItem(this ICustomShowableLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
+        public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
             list.AddCustomButton(IntChanger, (GameObject obj) => {
                 /* Add description text */
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
@@ -118,11 +116,11 @@ namespace WorldCleanup {
             });
         }
 
-        public static void AddFloatDiffListItem(this ICustomShowableLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value) {
+        public static void AddFloatDiffListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value) {
             AddIntDiffListItem(list, description, (val) => set_value((float)val), () => { return (int)get_value(); });
         }
 
-        public static void AddSliderListItem(this ICustomShowableLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f) {
+        public static void AddSliderListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f) {
             list.AddCustomButton(FloatSlider, (GameObject obj) => {
                 /* Add description text */
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
@@ -140,7 +138,7 @@ namespace WorldCleanup {
             });
         }
 
-        public static void AddToggleListItem(this ICustomShowableLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update) {
+        public static void AddToggleListItem(this ICustomLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update) {
             list.AddCustomButton(ComponentToggle, (GameObject obj) => {
                 /* Add description text */
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
@@ -158,7 +156,7 @@ namespace WorldCleanup {
             });
         }
 
-        public static void AddButtonToggleListItem(this ICustomShowableLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update) {
+        public static void AddButtonToggleListItem(this ICustomLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update) {
             list.AddCustomButton(ButtonToggleItem, (GameObject obj) => {
                 /* Add description text */
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
@@ -181,7 +179,7 @@ namespace WorldCleanup {
             });
         }
 
-        public static void AddDropdownListItem(this ICustomShowableLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state) {
+        public static void AddDropdownListItem(this ICustomLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state) {
             list.AddCustomButton(DropdownListItem, (GameObject obj) => {
                 /* Add description text */
                 obj.transform.GetChild(0).GetComponent<Text>().text = description;
@@ -195,6 +193,20 @@ namespace WorldCleanup {
                 dropdown.value = initial_state;
                 dropdown.onValueChanged.AddListener(on_change);
             });
+        }
+
+        private static void AddGenericHeader(this ICustomLayoutedMenu menu, GameObject layout, string header) {
+            menu.AddCustomButton(layout, obj => {
+                obj.GetComponentInChildren<Text>().text = header;
+            });
+        }
+
+        public static void AddHeader(this ICustomLayoutedMenu menu, string header) {
+            menu.AddGenericHeader(Header, header);
+        }
+
+        public static void AddCategoryHeader(this ICustomLayoutedMenu menu, string header) {
+            menu.AddGenericHeader(CategoryHeader, header);
         }
     }
 }
