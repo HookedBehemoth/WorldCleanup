@@ -94,6 +94,7 @@ namespace WorldCleanup {
             parent.AddButtonToggleListItem("World Sound", "Settings", () => {
                 var sound_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
 
+                sound_menu.AddHeader("World Audio Settings");
                 sound_menu.AddDropdownListItem("Preset", typeof(Preset), (value) => {
                     if ((Preset)value == Preset.Custom)
                         return;
@@ -104,7 +105,7 @@ namespace WorldCleanup {
                     on_exit();
                 }, (int)Preset.Custom);
 
-                sound_menu.AddLabel("\n\n Player voice");
+                sound_menu.AddCategoryHeader("Player voice");
                 sound_menu.AddSliderListItem("Gain", (val) => { s_AudioConfig.voice_gain = val; }, () => s_AudioConfig.voice_gain, 0, 24);
                 sound_menu.AddFloatDiffListItem("Far", (val) => { s_AudioConfig.voice_distance_far = val; }, () => s_AudioConfig.voice_distance_far);
                 sound_menu.AddFloatDiffListItem("Near", (val) => { s_AudioConfig.voice_distance_near = val; }, () => s_AudioConfig.voice_distance_near);
