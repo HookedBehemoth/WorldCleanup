@@ -19,7 +19,6 @@ using UnityEngine;
 
 namespace WorldCleanup.UI {
     public class Updater : MonoBehaviour {
-        public static float s_UpdateInterval = Settings.s_UpdateInterval;
         private float timer = 0f;
 
         public Action callback;
@@ -28,8 +27,9 @@ namespace WorldCleanup.UI {
 
         void Update() {
             timer += Time.deltaTime;
-            if (timer > s_UpdateInterval) {
-                timer -= s_UpdateInterval;
+            var interval = Settings.s_UpdateInterval.Value;
+            if (timer > interval) {
+                timer -= interval;
                 callback();
             }
         }

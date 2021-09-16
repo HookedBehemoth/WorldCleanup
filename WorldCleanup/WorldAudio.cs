@@ -53,24 +53,24 @@ namespace WorldCleanup {
         static AudioConfig s_AudioConfig;
 
         public static void LoadConfig() {
-            s_Enabled = Settings.s_EnableAudioOverride;
+            s_Enabled = Settings.s_EnableAudioOverride.Value;
 
             s_AudioConfig = new AudioConfig {
-                voice_gain = Settings.s_VoiceGain,
-                voice_distance_far = Settings.s_VoiceFar,
-                voice_distance_near = Settings.s_VoiceNear,
-                voice_volumetric_radius = Settings.s_VoiceVolRadius,
-                voice_lowpass = Settings.s_VoiceLowpass,
+                voice_gain = Settings.s_VoiceGain.Value,
+                voice_distance_far = Settings.s_VoiceFar.Value,
+                voice_distance_near = Settings.s_VoiceNear.Value,
+                voice_volumetric_radius = Settings.s_VoiceVolRadius.Value,
+                voice_lowpass = Settings.s_VoiceLowpass.Value,
             };
         }
 
         public static void FlushConfig() {
-            Settings.s_EnableAudioOverride = s_Enabled;
-            Settings.s_VoiceGain = s_AudioConfig.voice_gain;
-            Settings.s_VoiceFar = s_AudioConfig.voice_distance_far;
-            Settings.s_VoiceNear = s_AudioConfig.voice_distance_near;
-            Settings.s_VoiceVolRadius = s_AudioConfig.voice_volumetric_radius;
-            Settings.s_VoiceLowpass = s_AudioConfig.voice_lowpass;
+            Settings.s_EnableAudioOverride.Value = s_Enabled;
+            Settings.s_VoiceGain.Value = s_AudioConfig.voice_gain;
+            Settings.s_VoiceFar.Value = s_AudioConfig.voice_distance_far;
+            Settings.s_VoiceNear.Value = s_AudioConfig.voice_distance_near;
+            Settings.s_VoiceVolRadius.Value = s_AudioConfig.voice_volumetric_radius;
+            Settings.s_VoiceLowpass.Value = s_AudioConfig.voice_lowpass;
         }
 
         public static void ApplySettings(VRCPlayerApi player) {

@@ -48,9 +48,6 @@ namespace WorldCleanup {
             /* Register settings */
             Settings.RegisterConfig();
 
-            /* Load settings values */
-            Settings.LoadConfig();
-
             /* Load audio settings */
             WorldAudio.LoadConfig();
 
@@ -231,9 +228,6 @@ namespace WorldCleanup {
 
             /* Flush audio config */
             WorldAudio.FlushConfig();
-
-            /* Store settings */
-            Settings.FlushConfig();
         }
 
         public override void OnPreferencesLoaded()
@@ -243,9 +237,6 @@ namespace WorldCleanup {
             => LoadAndApplyPreferences();
 
         private void LoadAndApplyPreferences() {
-            /* Load settings values */
-            Settings.LoadConfig();
-
             /* Load audio settings */
             WorldAudio.LoadConfig();
             WorldAudio.ApplySettingsToAll();
@@ -268,9 +259,9 @@ namespace WorldCleanup {
                 s_PreviewCaptureCamera.SetActive(false);
             }
 
-            var disable_shadows = Settings.s_DisableLights;
-            var disable_ppv = Settings.s_DisablePostProcessing;
-            var disable_mirrors = Settings.s_DisableMirrors;
+            var disable_shadows = Settings.s_DisableLights.Value;
+            var disable_ppv = Settings.s_DisablePostProcessing.Value;
+            var disable_mirrors = Settings.s_DisableMirrors.Value;
             /* Iterate root objects */
             foreach (var sceneObject in active_scene.GetRootGameObjects()) {
                 /* Store all lights */
@@ -395,8 +386,8 @@ namespace WorldCleanup {
                 }, (restore) => {
                     foreach (var (light, original) in s_Lights)
                         light.shadows = restore ? original : LightShadows.None;
-                    Settings.s_DisableLights = !restore;
-                }, () => !Settings.s_DisableLights, false);
+                    Settings.s_DisableLights.Value = !restore;
+                }, () => !Settings.s_DisableLights.Value, false);
             } else {
                 settings_menu.AddLabel("No lights found on this map");
             }
@@ -412,8 +403,8 @@ namespace WorldCleanup {
                 }, (restore) => {
                     foreach (var (volume, original) in s_PostProcessingVolumes)
                         volume.gameObject.active = restore ? original : false;
-                    Settings.s_DisablePostProcessing = !restore;
-                }, () => !Settings.s_DisablePostProcessing, false);
+                    Settings.s_DisablePostProcessing.Value = !restore;
+                }, () => !Settings.s_DisablePostProcessing.Value, false);
             } else {
                 settings_menu.AddLabel("No Post Processing found on this map");
             }
@@ -429,8 +420,8 @@ namespace WorldCleanup {
                 }, (enable) => {
                     foreach (var mirror in s_Mirrors)
                         mirror.enabled = enable;
-                    Settings.s_DisableMirrors = !enable;
-                }, () => !Settings.s_DisableMirrors, false);
+                    Settings.s_DisableMirrors.Value = !enable;
+                }, () => !Settings.s_DisableMirrors.Value, false);
             } else {
                 settings_menu.AddLabel("No Mirrors found on this map");
             }
@@ -456,7 +447,7 @@ namespace WorldCleanup {
             WorldAudio.RegisterSettings(settings_menu, MainMenu);
 
             /* Update interval */
-            settings_menu.AddSliderListItem("Update interval (0-3s)", (value) => { Updater.s_UpdateInterval = Settings.s_UpdateInterval = value; }, () => Updater.s_UpdateInterval, 0f, 3f);
+            settings_menu.AddSliderListItem("Update interval (0-3s)", (value) => { Settings.s_UpdateInterval.Value = value; }, () => Settings.s_UpdateInterval.Value, 0f, 3f);
 
             settings_menu.AddSimpleButton("Back", settings_menu.Hide);
 
