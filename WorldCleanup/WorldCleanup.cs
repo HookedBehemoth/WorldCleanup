@@ -60,9 +60,13 @@ namespace WorldCleanup {
             /* Load our custom UI elements */
             UiExpansion.LoadUiObjects();
 
-            HarmonyInstance.Patch(
-                typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Boolean_ApiAvatar_GameObject_")),
-                postfix: new HarmonyLib.HarmonyMethod(typeof(WorldCleanupMod).GetMethod(nameof(OnAvatarInstantiate), BindingFlags.NonPublic | BindingFlags.Static)));
+            /* TODO: Consider switching to operator+ when everyone had to update the assembly unhollower */
+            /*       The current solution might be prefereable so we are always first */
+            // VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 += (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate;
+            VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 = Il2CppSystem.Delegate.Combine(
+                (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate,
+                VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0
+            ).Cast<Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>>();
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -297,12 +301,8 @@ namespace WorldCleanup {
             }
         }
 
-        private static void OnAvatarInstantiate(VRCAvatarManager __instance, VRC.Core.ApiAvatar __0, GameObject __1) {
-            if (__instance == null || __0 == null || __1 == null)
-                return;
-
-            var manager = __instance;
-            var avatar = manager.prop_GameObject_0;
+        private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor) {
+            var manager = player._vrcplayer.prop_VRCAvatarManager_0;
             var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_0;
             s_PlayerList[player_name] = avatar;
 
@@ -330,7 +330,6 @@ namespace WorldCleanup {
                     s_PreviewCaptureCamera.SetActive(true);
 
                     /* Move camera infront of head */
-                    var descriptor = manager.prop_VRCAvatarDescriptor_0;
                     var head_height = descriptor.ViewPosition.y;
                     var head = avatar.transform.position + new Vector3(0, head_height, 0);
                     var target = head + avatar.transform.forward * 0.3f;
