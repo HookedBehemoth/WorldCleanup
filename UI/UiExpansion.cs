@@ -37,16 +37,6 @@ namespace WorldCleanup {
         }
 
         private static IEnumerator LoadUiElements() {
-            /* Get UIExpansionKit GameObject parent */
-            GameObject parent = null;
-            do {
-                yield return new WaitForSeconds(1f);
-                parent = GameObject.Find("UserInterface/QuickMenu/ModUiPreloadedBundleContents");
-            } while (parent == null);
-
-            /* Copy font reference */
-            var noto_sans = parent.GetComponentInChildren<Text>()?.font;
-
             /* Load Asset bundle */
             AssetBundle asset_bundle = null;
             using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WorldCleanup.mod.assetbundle"))
@@ -56,6 +46,25 @@ namespace WorldCleanup {
                 asset_bundle = AssetBundle.LoadFromMemory(tempStream.ToArray());
                 asset_bundle.hideFlags |= HideFlags.DontUnloadUnusedAsset;
             }
+
+            T LoadGeneric<T>(string path) where T: UnityEngine.Object {
+                var asset = asset_bundle.LoadAsset<T>(path);
+                asset.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+                return asset;
+            }
+
+            SaveIcon = LoadGeneric<Texture2D>("Assets/Sprite/floppy-disk_1f4be.png");
+            LockClosedIcon = LoadGeneric<Texture2D>("Assets/Sprite/lock_1f512.png");
+            LockOpenIcon = LoadGeneric<Texture2D>("Assets/Sprite/open-lock_1f513.png");
+
+            PreviewCamera = LoadGeneric<GameObject>("Assets/Avatar Preview/AvatarPreviewCamera.prefab");
+
+            /* Get UIExpansionKit GameObject parent */
+            GameObject parent;
+            do {
+                yield return new WaitForSeconds(1f);
+                parent = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/ModUiPreloadedBundleContents");
+            } while (parent == null);
 
             GameObject LoadUiElement(string str) {
                 var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
@@ -75,18 +84,6 @@ namespace WorldCleanup {
             DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
             Header = LoadUiElement("Header");
             CategoryHeader = LoadUiElement("CategoryHeader");
-
-            T LoadGeneric<T>(string path) where T: UnityEngine.Object {
-                var asset = asset_bundle.LoadAsset<T>(path);
-                asset.hideFlags |= HideFlags.DontUnloadUnusedAsset;
-                return asset;
-            }
-
-            SaveIcon = LoadGeneric<Texture2D>("Assets/Sprite/floppy-disk_1f4be.png");
-            LockClosedIcon = LoadGeneric<Texture2D>("Assets/Sprite/lock_1f512.png");
-            LockOpenIcon = LoadGeneric<Texture2D>("Assets/Sprite/open-lock_1f513.png");
-
-            PreviewCamera = LoadGeneric<GameObject>("Assets/Avatar Preview/AvatarPreviewCamera.prefab");
         }
 
         public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
