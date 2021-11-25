@@ -60,9 +60,9 @@ namespace WorldCleanup {
             /*       The current solution might be prefereable so we are always first */
             // VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 += (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate;
             VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 = Il2CppSystem.Delegate.Combine(
-                (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate,
+                (Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor>)OnAvatarInstantiate,
                 VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0
-            ).Cast<Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>>();
+            ).Cast<Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor>>();
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -293,7 +293,8 @@ namespace WorldCleanup {
 
         private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor) {
             var manager = player._vrcplayer.prop_VRCAvatarManager_0;
-            var player_name = avatar.transform.root.GetComponentInChildren<VRCPlayer>().prop_String_1;
+            var player_name = player._vrcplayer.prop_String_1;
+            if (player_name == null) return;
             s_PlayerList[player_name] = avatar;
 
             Parameters.ApplyParameters(manager);
@@ -401,7 +402,7 @@ namespace WorldCleanup {
                     pp_menu.Show();
                 }, (restore) => {
                     foreach (var (volume, original) in s_PostProcessingVolumes)
-                        volume.gameObject.active = restore ? original : false;
+                        volume.gameObject.active = restore && original;
                     Settings.s_DisablePostProcessing.Value = !restore;
                 }, () => !Settings.s_DisablePostProcessing.Value, false);
             } else {
@@ -410,7 +411,7 @@ namespace WorldCleanup {
 
             /* Mirrors */
             if (s_Mirrors.Count() > 0) {
-                settings_menu.AddButtonToggleListItem("Mirror", $"Volumes: {s_Mirrors.Count()}", () => {
+                settings_menu.AddButtonToggleListItem("Mirror", $"Mirrors: {s_Mirrors.Count()}", () => {
                     var mirror_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
                     foreach (var mirror in s_Mirrors)
                         mirror_menu.AddToggleListItem(mirror.name, (state) => { mirror.enabled = state; }, () => mirror.enabled, true);
@@ -454,11 +455,11 @@ namespace WorldCleanup {
         }
 
         private void OnUserQuickMenu() {
-            var player = QuickMenu.prop_QuickMenu_0.field_Private_Player_0?.prop_VRCPlayer_0;
+            var player = VRC.DataModel.UserSelectionManager.field_Private_Static_UserSelectionManager_0?.field_Private_APIUser_1;
             if (player == null)
                 return;
 
-            AvatarList(player.prop_String_0, true);
+            AvatarList(player.displayName, true);
         }
 
         private void PlayerList() {
