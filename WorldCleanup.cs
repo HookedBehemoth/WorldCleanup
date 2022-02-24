@@ -14,22 +14,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using ActionMenuApi.Api;
 using MelonLoader;
+using UIExpansionKit.API;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
-using UIExpansionKit.API;
-using System;
-using System.Reflection;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Collections;
-using System.Collections.Generic;
-using VRC.Playables;
-using VRC.SDKBase;
 using VRC;
+using VRC.Playables;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using ActionMenuApi.Api;
+using VRC.SDKBase;
 
 [assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.6", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
@@ -89,9 +89,6 @@ namespace WorldCleanup
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(Parameters.FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
-
-            // if (param_prop_bool_set == null) goto hook_fail;
-            // hook_fail:
 
             AMUtils.AddToModsFolder("Player Toggles", () =>
             {
