@@ -720,7 +720,7 @@ namespace WorldCleanup
                                 switch (type)
                                 {
                                     case AvatarParameter.ParameterType.Bool:
-                                        parameter_list.AddToggleListItem(name, parameter.SetBoolProperty, () => parameter.prop_Boolean_0, true);
+                                        parameter_list.AddToggleListItem(name, parameter.SetBoolProperty, () => parameter.prop_Boolean_1, true);
                                         break;
 
                                     case AvatarParameter.ParameterType.Int:
