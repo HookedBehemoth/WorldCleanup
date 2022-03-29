@@ -38,6 +38,9 @@ namespace WorldCleanup
 {
     public class WorldCleanupMod : MelonMod
     {
+        // struct ToggleState {
+        // };
+        // private static Dictionary<string, ToggleState> s_ToggleStates;
         private static Dictionary<string, GameObject> s_PlayerList;
         private static List<Tuple<Light, LightShadows>> s_Lights;
         private static List<Tuple<PostProcessVolume, bool>> s_PostProcessingVolumes;
@@ -61,11 +64,7 @@ namespace WorldCleanup
 
             /* TODO: Consider switching to operator+ when everyone had to update the assembly unhollower */
             /*       The current solution might be prefereable so we are always first */
-            // VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 += (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate;
-            VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 = Il2CppSystem.Delegate.Combine(
-                (Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor>)OnAvatarInstantiate,
-                VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0
-            ).Cast<Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor>>();
+            VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 += (Il2CppSystem.Action<Player, GameObject, VRC.SDKBase.VRC_AvatarDescriptor>)OnAvatarInstantiate;
 
             /* Register async, awaiting network manager */
             MelonCoroutines.Start(RegisterJoinLeaveNotifier());
@@ -627,6 +626,34 @@ namespace WorldCleanup
                 var remainder = renderers.Where(o => { return !o.TryCast<SkinnedMeshRenderer>() && !o.TryCast<MeshRenderer>() && !o.TryCast<ParticleSystemRenderer>(); });
                 if (remainder.Count() > 0)
                     avatar_list.AddSimpleButton($"Other: {remainder.Count()}", () => { ShowGenericRendererToggleList(null, remainder); });
+
+                avatar_list.AddSimpleButton("Material Toggles", () =>
+                {
+                    var list = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
+                    foreach (var _renderer in renderers)
+                    {
+                        var renderer = _renderer;
+                        var materials = renderer.materials;
+                        var materialsBackup = renderer.materials;
+                        list.AddHeader($"{renderer.name}:");
+                        for (int _i = 0; _i < renderer.materials.Length; _i++)
+                        {
+                            var i = _i;
+                            var material = renderer.materials[i];
+                            list.AddToggleListItem(material.name, (state) =>
+                            {
+                                materials[i] = state ? UiExpansion.InvisibleMaterial : material;
+                                renderer.materials = materials;
+                            }, () => false, false);
+                        }
+                        list.AddSimpleButton("Reset", () =>
+                        {
+                            renderer.materials = materialsBackup;
+                            materials = renderer.materials;
+                        });
+                    }
+                    list.Show();
+                });
             }
             {
                 /* Ignore SDK2 & avatars w/o custom expressions */

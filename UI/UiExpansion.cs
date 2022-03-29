@@ -22,32 +22,40 @@ using UnhollowerRuntimeLib;
 using WorldCleanup.UI;
 using MelonLoader;
 using System.Collections;
+using TMPro;
 
-namespace WorldCleanup {
-    static class UiExpansion {
+namespace WorldCleanup
+{
+    static class UiExpansion
+    {
         private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem, Header, CategoryHeader;
         public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon;
         public static GameObject PreviewCamera;
+        public static Material InvisibleMaterial;
 
-        public static void LoadUiObjects() {
+        public static void LoadUiObjects()
+        {
             ClassInjector.RegisterTypeInIl2Cpp<Updater>();
 
             /* Load async to avoid race with UI Expansion kit */
             MelonCoroutines.Start(LoadUiElements());
         }
 
-        private static IEnumerator LoadUiElements() {
+        private static IEnumerator LoadUiElements()
+        {
             /* Load Asset bundle */
             AssetBundle asset_bundle = null;
             using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WorldCleanup.mod.assetbundle"))
-            using (var tempStream = new System.IO.MemoryStream((int)stream.Length)) {
+            using (var tempStream = new System.IO.MemoryStream((int)stream.Length))
+            {
                 stream.CopyTo(tempStream);
 
                 asset_bundle = AssetBundle.LoadFromMemory(tempStream.ToArray());
                 asset_bundle.hideFlags |= HideFlags.DontUnloadUnusedAsset;
             }
 
-            T LoadGeneric<T>(string path) where T: UnityEngine.Object {
+            T LoadGeneric<T>(string path) where T : UnityEngine.Object
+            {
                 var asset = asset_bundle.LoadAsset<T>(path);
                 asset.hideFlags |= HideFlags.DontUnloadUnusedAsset;
                 return asset;
@@ -59,14 +67,18 @@ namespace WorldCleanup {
 
             PreviewCamera = LoadGeneric<GameObject>("Assets/Avatar Preview/AvatarPreviewCamera.prefab");
 
+            InvisibleMaterial = LoadGeneric<Material>("Assets/Invisible/InvisibleMaterial.mat");
+
             /* Get UIExpansionKit GameObject parent */
             GameObject parent;
-            do {
+            do
+            {
                 yield return new WaitForSeconds(1f);
                 parent = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/ModUiPreloadedBundleContents");
             } while (parent == null);
 
-            GameObject LoadUiElement(string str) {
+            GameObject LoadUiElement(string str)
+            {
                 var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
 
                 /* Attach it to QuickMenu to inherit render queue changes */
@@ -86,13 +98,16 @@ namespace WorldCleanup {
             CategoryHeader = LoadUiElement("CategoryHeader");
         }
 
-        public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value) {
-            list.AddCustomButton(IntChanger, (GameObject obj) => {
+        public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value)
+        {
+            var obj = list.AddCustomButton(IntChanger);
+            obj.OnInstanceCreated += (GameObject obj) =>
+            {
                 /* Add description text */
-                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
                 /* Configure value field */
-                var text_field = obj.transform.GetChild(1).GetComponent<Text>();
+                var text_field = obj.transform.GetChild(1).GetComponent<TMP_Text>();
                 text_field.text = get_value().ToString();
 
                 /* Configure updater */
@@ -100,8 +115,10 @@ namespace WorldCleanup {
                 updater.callback = () => { text_field.text = get_value().ToString(); };
 
                 /* Configure buttons */
-                Action ConstructChangeCallback(int diff) {
-                    return () => {
+                Action ConstructChangeCallback(int diff)
+                {
+                    return () =>
+                    {
                         var value = get_value() + diff;
                         set_value.Invoke(value);
                         text_field.text = value.ToString();
@@ -110,17 +127,21 @@ namespace WorldCleanup {
 
                 obj.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(-1));
                 obj.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(1));
-            });
+            };
         }
 
-        public static void AddFloatDiffListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value) {
+        public static void AddFloatDiffListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value)
+        {
             AddIntDiffListItem(list, description, (val) => set_value((float)val), () => { return (int)get_value(); });
         }
 
-        public static void AddSliderListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f) {
-            list.AddCustomButton(FloatSlider, (GameObject obj) => {
+        public static void AddSliderListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f)
+        {
+            var obj = list.AddCustomButton(FloatSlider);
+            obj.OnInstanceCreated += (GameObject obj) =>
+            {
                 /* Add description text */
-                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
                 /* Configure slider */
                 var slider = obj.transform.GetChild(1).GetComponent<Slider>();
@@ -132,13 +153,16 @@ namespace WorldCleanup {
                 /* Configure updater */
                 var updater = obj.AddComponent<Updater>();
                 updater.callback = () => { slider.SetValueWithoutNotify(get_value()); };
-            });
+            };
         }
 
-        public static void AddToggleListItem(this ICustomLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update) {
-            list.AddCustomButton(ComponentToggle, (GameObject obj) => {
+        public static void AddToggleListItem(this ICustomLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update)
+        {
+            var obj = list.AddCustomButton(ComponentToggle);
+            obj.OnInstanceCreated += (GameObject obj) =>
+            {
                 /* Add description text */
-                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
                 /* Configure toggle */
                 var toggle = obj.transform.GetChild(1).GetComponent<Toggle>();
@@ -146,21 +170,25 @@ namespace WorldCleanup {
                 toggle.onValueChanged.AddListener(set_value);
 
                 /* Add toggle updater script */
-                if (update) {
+                if (update)
+                {
                     var updater = obj.AddComponent<Updater>();
                     updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
                 }
-            });
+            };
         }
 
-        public static void AddButtonToggleListItem(this ICustomLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update) {
-            list.AddCustomButton(ButtonToggleItem, (GameObject obj) => {
+        public static void AddButtonToggleListItem(this ICustomLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update)
+        {
+            var obj = list.AddCustomButton(ButtonToggleItem);
+            obj.OnInstanceCreated += (GameObject obj) =>
+            {
                 /* Add description text */
-                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
                 /* Configure button */
                 var button = obj.transform.GetChild(1);
-                button.GetComponentInChildren<Text>().text = submenu_name;
+                button.GetComponentInChildren<TMP_Text>().text = submenu_name;
                 button.GetComponent<Button>().onClick.AddListener(on_button);
 
                 /* Configure toggle */
@@ -169,40 +197,50 @@ namespace WorldCleanup {
                 toggle.onValueChanged.AddListener(set_value);
 
                 /* Configure updater */
-                if (update) {
+                if (update)
+                {
                     var updater = obj.AddComponent<Updater>();
                     updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
                 }
-            });
+            };
         }
 
-        public static void AddDropdownListItem(this ICustomLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state) {
-            list.AddCustomButton(DropdownListItem, (GameObject obj) => {
+        public static void AddDropdownListItem(this ICustomLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state)
+        {
+            var obj = list.AddCustomButton(DropdownListItem);
+            obj.OnInstanceCreated += (GameObject obj) =>
+            {
                 /* Add description text */
-                obj.transform.GetChild(0).GetComponent<Text>().text = description;
+                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
                 /* Configure Enum Dropdown */
-                var dropdown = obj.transform.GetChild(1).GetComponent<Dropdown>();
+                var dropdown = obj.transform.GetChild(1).GetComponent<TMP_Dropdown>();
                 var options = new Il2CppSystem.Collections.Generic.List<string> { };
                 foreach (var name in Enum.GetNames(values))
                     options.Add(name);
+                dropdown.ClearOptions();
                 dropdown.AddOptions(options);
                 dropdown.value = initial_state;
                 dropdown.onValueChanged.AddListener(on_change);
-            });
+            };
         }
 
-        private static void AddGenericHeader(this ICustomLayoutedMenu menu, GameObject layout, string header) {
-            menu.AddCustomButton(layout, obj => {
-                obj.GetComponentInChildren<Text>().text = header;
-            });
+        private static void AddGenericHeader(this ICustomLayoutedMenu menu, GameObject layout, string header)
+        {
+            var obj = menu.AddCustomButton(layout);
+            obj.OnInstanceCreated += obj =>
+            {
+                obj.GetComponentInChildren<TMP_Text>().text = header;
+            };
         }
 
-        public static void AddHeader(this ICustomLayoutedMenu menu, string header) {
+        public static void AddHeader(this ICustomLayoutedMenu menu, string header)
+        {
             menu.AddGenericHeader(Header, header);
         }
 
-        public static void AddCategoryHeader(this ICustomLayoutedMenu menu, string header) {
+        public static void AddCategoryHeader(this ICustomLayoutedMenu menu, string header)
+        {
             menu.AddGenericHeader(CategoryHeader, header);
         }
     }
