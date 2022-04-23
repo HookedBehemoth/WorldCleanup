@@ -76,15 +76,15 @@ namespace WorldCleanup
             /* Hook into setter for parameter properties */
             unsafe
             {
-                var param_prop_bool_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_bool_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_boolVal_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_bool_set, new Action<IntPtr, bool>(Parameters.BoolPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 Parameters._boolPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.BoolPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_bool_set);
 
-                var param_prop_int_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_int_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_intVal_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_int_set, new Action<IntPtr, int>(Parameters.IntPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 Parameters._intPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.IntPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_int_set);
 
-                var param_prop_float_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_float_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_floatVal_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(Parameters.FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
@@ -755,7 +755,7 @@ namespace WorldCleanup
                                         break;
 
                                     case AvatarParameter.ParameterType.Float:
-                                        parameter_list.AddSliderListItem(name, parameter.SetFloatProperty, () => parameter.prop_Single_0);
+                                        parameter_list.AddSliderListItem(name, parameter.SetFloatProperty, () => parameter.prop_Single_1);
                                         break;
 
                                     default:

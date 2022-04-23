@@ -71,7 +71,7 @@ namespace WorldCleanup
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        val_float = src.prop_Single_0;
+                        val_float = src.prop_Single_1;
                         break;
                 }
             }
@@ -235,7 +235,7 @@ namespace WorldCleanup
             {
                 AvatarParameter.ParameterType.Bool => parameter.prop_Boolean_1 ? 1f : 0f,
                 AvatarParameter.ParameterType.Int => parameter.prop_Int32_1,
-                AvatarParameter.ParameterType.Float => parameter.prop_Single_0,
+                AvatarParameter.ParameterType.Float => parameter.prop_Single_1,
                 _ => 0f,
             };
         }
