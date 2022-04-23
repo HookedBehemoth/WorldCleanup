@@ -652,6 +652,7 @@ namespace WorldCleanup
                             materials = renderer.materials;
                         });
                     }
+                    list.AddSimpleButton("Back", () => { list.Hide(); AvatarList(player_name, close_on_exit); });
                     list.Show();
                 });
             }
