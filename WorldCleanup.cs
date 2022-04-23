@@ -31,7 +31,7 @@ using VRC.Playables;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.0.7c", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.1", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup
