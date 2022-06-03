@@ -31,7 +31,7 @@ using VRC.Playables;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.1", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup
@@ -177,7 +177,7 @@ namespace WorldCleanup
                                                 CustomSubMenu.AddToggle(
                                                     control.TruncatedName(),
                                                     current_value == target_value,
-                                                    param.prop_ParameterType_0 == AvatarParameter.ParameterType.Bool ? SetBool : SetIntFloat,
+                                                    param.field_Public_ParameterType_0 == AvatarParameter.ParameterType.Bool ? SetBool : SetIntFloat,
                                                     icon: control.icon ?? default_expression);
                                                 break;
                                             }
@@ -700,7 +700,7 @@ namespace WorldCleanup
 
                                             list.AddToggleListItem(
                                                 control.TruncatedName(),
-                                                param.prop_ParameterType_0 == AvatarParameter.ParameterType.Bool ? SetBool : SetIntFloat,
+                                                param.field_Public_ParameterType_0 == AvatarParameter.ParameterType.Bool ? SetBool : SetIntFloat,
                                                 () => { return current_value == target_value; },
                                                 true);
                                             break;
@@ -744,7 +744,7 @@ namespace WorldCleanup
                             foreach (var parameter in filtered)
                             {
                                 var name = parameter.TruncatedName();
-                                var type = parameter.field_Private_ParameterType_0;
+                                var type = parameter.field_Public_ParameterType_0;
                                 switch (type)
                                 {
                                     case AvatarParameter.ParameterType.Bool:

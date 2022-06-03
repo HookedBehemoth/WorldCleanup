@@ -59,7 +59,7 @@ namespace WorldCleanup
             public Parameter() { }
             public Parameter(AvatarParameter src)
             {
-                type = src.field_Private_ParameterType_0;
+                type = src.field_Public_ParameterType_0;
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
@@ -212,7 +212,7 @@ namespace WorldCleanup
         {
             if (parameter == null) return;
             /* Call original delegate to avoid self MITM */
-            switch (parameter.field_Private_ParameterType_0)
+            switch (parameter.field_Public_ParameterType_0)
             {
                 case AvatarParameter.ParameterType.Bool:
                     _boolPropertySetterDelegate(parameter.Pointer, value != 0.0f);
@@ -231,7 +231,7 @@ namespace WorldCleanup
         public static float GetValue(this AvatarParameter parameter)
         {
             if (parameter == null) return 0f;
-            return parameter.field_Private_ParameterType_0 switch
+            return parameter.field_Public_ParameterType_0 switch
             {
                 AvatarParameter.ParameterType.Bool => parameter.prop_Boolean_1 ? 1f : 0f,
                 AvatarParameter.ParameterType.Int => parameter.prop_Int32_1,
