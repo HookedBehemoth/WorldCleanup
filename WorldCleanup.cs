@@ -31,7 +31,7 @@ using VRC.Playables;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
 
-[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
+[assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.3", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace WorldCleanup
@@ -89,7 +89,7 @@ namespace WorldCleanup
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
 
-            AMUtils.AddToModsFolder("Player Toggles", () =>
+            VRCActionMenuPage.AddSubMenu(ActionMenuPage.Main,"Player Toggles", () =>
             {
                 /* Filter inactive avatar objects */
                 s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
