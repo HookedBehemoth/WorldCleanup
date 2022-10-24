@@ -132,4 +132,9 @@
         <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
         <RemoveDir Directories="$(BaseOutputPath)" />
     </Target>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="Exists('$(VRChatPath)')">
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(VRChatPath)\Mods" />
+        <Message Text="Copied $(TargetFileName) to $(VRChatPath)\Mods" Importance="high" />
+    </Target>
 </Project>
