@@ -31,6 +31,7 @@ namespace WorldCleanup
     {
         public static readonly string[] DefaultParameterNames = new string[] {
             "Viseme",
+            "Voice",
             "GestureLeft",
             "GestureLeftWeight",
             "GestureRight",
@@ -38,6 +39,7 @@ namespace WorldCleanup
             "TrackingType",
             "VRMode",
             "MuteSelf",
+            "Earmuffs",
             "Grounded",
             "AngularY",
             "Upright",
