@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 HookedBehemoth
+ * Copyright (c) 2021-2022 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VRC.Playables;
+
+using static Polyfill;
+
+using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
+using VRCPlayer = MonoBehaviour1PublicOb_pOb_c_pStTeObBoStUnique;
+using PlayableController = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique;
+using AvatarParameter = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique.ObjectNPublicInObInPaSiInInUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
+using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
 namespace WorldCleanup
 {
@@ -51,50 +60,50 @@ namespace WorldCleanup
             "VRCFaceBlendV",
         };
 
-        public static List<AvatarParameter> FilterDefaultParameters(IEnumerable<AvatarParameter> src)
+        public static List<AvatarParameterAccess> FilterDefaultParameters(IEnumerable<AvatarParameterAccess> src)
             => src.Where(param => !DefaultParameterNames.Contains(param.field_Private_String_0)).ToList();
 
         class Parameter
         {
             public Parameter() { }
-            public Parameter(AvatarParameter src)
+            public Parameter(AvatarParameterAccess src)
             {
-                type = src.field_Public_ParameterType_0;
+                type = src.GetAvatarParameterType();
                 switch (type)
                 {
-                    case AvatarParameter.ParameterType.Bool:
+                    case AvatarParameterType.Bool:
                         val_bool = src.prop_Boolean_1;
                         break;
 
-                    case AvatarParameter.ParameterType.Int:
+                    case AvatarParameterType.Int:
                         val_int = src.prop_Int32_1;
                         break;
 
-                    case AvatarParameter.ParameterType.Float:
+                    case AvatarParameterType.Float:
                         val_float = src.prop_Single_1;
                         break;
                 }
             }
-            public void Apply(AvatarParameter dst)
+            public void Apply(AvatarParameterAccess dst)
             {
                 switch (type)
                 {
-                    case AvatarParameter.ParameterType.Bool:
+                    case AvatarParameterType.Bool:
                         dst.SetBoolProperty(val_bool);
                         break;
 
-                    case AvatarParameter.ParameterType.Int:
+                    case AvatarParameterType.Int:
                         dst.SetIntProperty(val_int);
                         break;
 
-                    case AvatarParameter.ParameterType.Float:
+                    case AvatarParameterType.Float:
                         dst.SetFloatProperty(val_float);
                         break;
                 }
 
                 dst.Lock();
             }
-            public AvatarParameter.ParameterType type;
+            public AvatarParameterType type;
             public int val_int = 0;
             public float val_float = 0.0f;
             public bool val_bool = false;
@@ -110,10 +119,10 @@ namespace WorldCleanup
 
         static private Dictionary<string, AvatarSettings> settings;
 
-        public static IEnumerable<AvatarParameter> GetAllAvatarParameters(this VRCAvatarManager manager)
+        public static IEnumerable<AvatarParameterAccess> GetAllAvatarParameters(this VRCAvatarManager manager)
         {
-            var parameters = manager.field_Private_AvatarPlayableController_0?
-                                    .field_Private_Dictionary_2_Int32_AvatarParameter_0;
+            var parameters = manager.GetAvatarPlayableController()?
+                                    .GetParameters();
 
             if (parameters == null)
                 yield break;
@@ -122,13 +131,13 @@ namespace WorldCleanup
                 yield return param.value;
         }
 
-        public static List<AvatarParameter> GetAvatarParameters(this VRCAvatarManager manager)
+        public static List<AvatarParameterAccess> GetAvatarParameters(this VRCAvatarManager manager)
             => FilterDefaultParameters(manager.GetAllAvatarParameters());
 
         public static bool HasCustomExpressions(this VRCAvatarManager manager)
         {
             return manager &&
-                   manager.field_Private_AvatarPlayableController_0 != null &&
+                   manager.GetAvatarPlayableController() != null &&
                    manager.prop_VRCAvatarDescriptor_0 != null &&
                    manager.prop_VRCAvatarDescriptor_0.customExpressions &&
                    /* Fuck you */
@@ -208,51 +217,51 @@ namespace WorldCleanup
                 parameter.Lock();
         }
 
-        public static void SetValue(this AvatarParameter parameter, float value)
+        public static void SetValue(this AvatarParameterAccess parameter, float value)
         {
             if (parameter == null) return;
             /* Call original delegate to avoid self MITM */
-            switch (parameter.field_Public_ParameterType_0)
+            switch (parameter.GetAvatarParameterType())
             {
-                case AvatarParameter.ParameterType.Bool:
+                case AvatarParameterType.Bool:
                     _boolPropertySetterDelegate(parameter.Pointer, value != 0.0f);
                     break;
 
-                case AvatarParameter.ParameterType.Int:
+                case AvatarParameterType.Int:
                     _intPropertySetterDelegate(parameter.Pointer, (int)value);
                     break;
 
-                case AvatarParameter.ParameterType.Float:
+                case AvatarParameterType.Float:
                     _floatPropertySetterDelegate(parameter.Pointer, value);
                     break;
             }
         }
 
-        public static float GetValue(this AvatarParameter parameter)
+        public static float GetValue(this AvatarParameterAccess parameter)
         {
             if (parameter == null) return 0f;
-            return parameter.field_Public_ParameterType_0 switch
+            return parameter.GetAvatarParameterType() switch
             {
-                AvatarParameter.ParameterType.Bool => parameter.prop_Boolean_1 ? 1f : 0f,
-                AvatarParameter.ParameterType.Int => parameter.prop_Int32_1,
-                AvatarParameter.ParameterType.Float => parameter.prop_Single_1,
+                AvatarParameterType.Bool => parameter.prop_Boolean_1 ? 1f : 0f,
+                AvatarParameterType.Int => parameter.prop_Int32_1,
+                AvatarParameterType.Float => parameter.prop_Single_1,
                 _ => 0f,
             };
         }
 
-        public static void SetBoolProperty(this AvatarParameter parameter, bool value)
+        public static void SetBoolProperty(this AvatarParameterAccess parameter, bool value)
         {
             if (parameter == null) return;
             _boolPropertySetterDelegate(parameter.Pointer, value);
         }
 
-        public static void SetIntProperty(this AvatarParameter parameter, int value)
+        public static void SetIntProperty(this AvatarParameterAccess parameter, int value)
         {
             if (parameter == null) return;
             _intPropertySetterDelegate(parameter.Pointer, value);
         }
 
-        public static void SetFloatProperty(this AvatarParameter parameter, float value)
+        public static void SetFloatProperty(this AvatarParameterAccess parameter, float value)
         {
             if (parameter == null) return;
             _floatPropertySetterDelegate(parameter.Pointer, value);
@@ -280,21 +289,21 @@ namespace WorldCleanup
 
         private static readonly HashSet<IntPtr> s_ParameterOverrideList = new();
 
-        public static void Unlock(this AvatarParameter parameter)
+        public static void Unlock(this AvatarParameterAccess parameter)
         {
             /* Reenable parameter override */
             if (parameter.IsLocked())
                 s_ParameterOverrideList.Remove(parameter.Pointer);
         }
 
-        public static void Lock(this AvatarParameter parameter)
+        public static void Lock(this AvatarParameterAccess parameter)
         {
             /* Disable override parameters */
             if (!parameter.IsLocked())
                 s_ParameterOverrideList.Add(parameter.Pointer);
         }
 
-        public static bool IsLocked(this AvatarParameter parameter)
+        public static bool IsLocked(this AvatarParameterAccess parameter)
         {
             return s_ParameterOverrideList.Contains(parameter.Pointer);
         }
@@ -305,7 +314,7 @@ namespace WorldCleanup
         internal static void BoolPropertySetter(IntPtr @this, bool value)
         {
             /* Block manually overwritten parameters */
-            var param = new AvatarParameter(@this);
+            var param = new AvatarParameterAccess(@this);
             if (param.IsLocked())
                 return;
 
@@ -319,7 +328,7 @@ namespace WorldCleanup
         internal static void IntPropertySetter(IntPtr @this, int value)
         {
             /* Block manually overwritten parameters */
-            var param = new AvatarParameter(@this);
+            var param = new AvatarParameterAccess(@this);
             if (param.IsLocked())
                 return;
 
@@ -333,7 +342,7 @@ namespace WorldCleanup
         internal static void FloatPropertySetter(IntPtr @this, float value)
         {
             /* Block manually overwritten parameters */
-            var param = new AvatarParameter(@this);
+            var param = new AvatarParameterAccess(@this);
             if (param.IsLocked())
                 return;
 

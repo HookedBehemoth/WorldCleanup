@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2021 HookedBehemoth
+ * Copyright (c) 2021-2022 HookedBehemoth
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,13 +16,13 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.UI;
-using UIExpansionKit.API;
+// using UnityEngine.UI;
+// using UIExpansionKit.API;
 using UnhollowerRuntimeLib;
 using WorldCleanup.UI;
 using MelonLoader;
 using System.Collections;
-using TMPro;
+// using TMPro;
 
 namespace WorldCleanup
 {
@@ -98,150 +98,150 @@ namespace WorldCleanup
             CategoryHeader = LoadUiElement("CategoryHeader");
         }
 
-        public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value)
-        {
-            var obj = list.AddCustomButton(IntChanger);
-            obj.OnInstanceCreated += (GameObject obj) =>
-            {
-                /* Add description text */
-                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
+        // public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value)
+        // {
+        //     var obj = list.AddCustomButton(IntChanger);
+        //     obj.OnInstanceCreated += (GameObject obj) =>
+        //     {
+        //         /* Add description text */
+        //         obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
-                /* Configure value field */
-                var text_field = obj.transform.GetChild(1).GetComponent<TMP_Text>();
-                text_field.text = get_value().ToString();
+        //         /* Configure value field */
+        //         var text_field = obj.transform.GetChild(1).GetComponent<TMP_Text>();
+        //         text_field.text = get_value().ToString();
 
-                /* Configure updater */
-                var updater = obj.AddComponent<Updater>();
-                updater.callback = () => { text_field.text = get_value().ToString(); };
+        //         /* Configure updater */
+        //         var updater = obj.AddComponent<Updater>();
+        //         updater.callback = () => { text_field.text = get_value().ToString(); };
 
-                /* Configure buttons */
-                Action ConstructChangeCallback(int diff)
-                {
-                    return () =>
-                    {
-                        var value = get_value() + diff;
-                        set_value.Invoke(value);
-                        text_field.text = value.ToString();
-                    };
-                }
+        //         /* Configure buttons */
+        //         Action ConstructChangeCallback(int diff)
+        //         {
+        //             return () =>
+        //             {
+        //                 var value = get_value() + diff;
+        //                 set_value.Invoke(value);
+        //                 text_field.text = value.ToString();
+        //             };
+        //         }
 
-                obj.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(-1));
-                obj.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(1));
-            };
-        }
+        //         obj.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(-1));
+        //         obj.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(ConstructChangeCallback(1));
+        //     };
+        // }
 
-        public static void AddFloatDiffListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value)
-        {
-            AddIntDiffListItem(list, description, (val) => set_value((float)val), () => { return (int)get_value(); });
-        }
+        // public static void AddFloatDiffListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value)
+        // {
+        //     AddIntDiffListItem(list, description, (val) => set_value((float)val), () => { return (int)get_value(); });
+        // }
 
-        public static void AddSliderListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f)
-        {
-            var obj = list.AddCustomButton(FloatSlider);
-            obj.OnInstanceCreated += (GameObject obj) =>
-            {
-                /* Add description text */
-                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
+        // public static void AddSliderListItem(this ICustomLayoutedMenu list, string description, Action<float> set_value, Func<float> get_value, float min = -1.0f, float max = 1.0f)
+        // {
+        //     var obj = list.AddCustomButton(FloatSlider);
+        //     obj.OnInstanceCreated += (GameObject obj) =>
+        //     {
+        //         /* Add description text */
+        //         obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
-                /* Configure slider */
-                var slider = obj.transform.GetChild(1).GetComponent<Slider>();
-                slider.minValue = min;
-                slider.maxValue = max;
-                slider.value = get_value();
-                slider.onValueChanged.AddListener(set_value);
+        //         /* Configure slider */
+        //         var slider = obj.transform.GetChild(1).GetComponent<Slider>();
+        //         slider.minValue = min;
+        //         slider.maxValue = max;
+        //         slider.value = get_value();
+        //         slider.onValueChanged.AddListener(set_value);
 
-                /* Configure updater */
-                var updater = obj.AddComponent<Updater>();
-                updater.callback = () => { slider.SetValueWithoutNotify(get_value()); };
-            };
-        }
+        //         /* Configure updater */
+        //         var updater = obj.AddComponent<Updater>();
+        //         updater.callback = () => { slider.SetValueWithoutNotify(get_value()); };
+        //     };
+        // }
 
-        public static void AddToggleListItem(this ICustomLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update)
-        {
-            var obj = list.AddCustomButton(ComponentToggle);
-            obj.OnInstanceCreated += (GameObject obj) =>
-            {
-                /* Add description text */
-                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
+        // public static void AddToggleListItem(this ICustomLayoutedMenu list, string description, Action<bool> set_value, Func<bool> get_value, bool update)
+        // {
+        //     var obj = list.AddCustomButton(ComponentToggle);
+        //     obj.OnInstanceCreated += (GameObject obj) =>
+        //     {
+        //         /* Add description text */
+        //         obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
-                /* Configure toggle */
-                var toggle = obj.transform.GetChild(1).GetComponent<Toggle>();
-                toggle.isOn = get_value();
-                toggle.onValueChanged.AddListener(set_value);
+        //         /* Configure toggle */
+        //         var toggle = obj.transform.GetChild(1).GetComponent<Toggle>();
+        //         toggle.isOn = get_value();
+        //         toggle.onValueChanged.AddListener(set_value);
 
-                /* Add toggle updater script */
-                if (update)
-                {
-                    var updater = obj.AddComponent<Updater>();
-                    updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
-                }
-            };
-        }
+        //         /* Add toggle updater script */
+        //         if (update)
+        //         {
+        //             var updater = obj.AddComponent<Updater>();
+        //             updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
+        //         }
+        //     };
+        // }
 
-        public static void AddButtonToggleListItem(this ICustomLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update)
-        {
-            var obj = list.AddCustomButton(ButtonToggleItem);
-            obj.OnInstanceCreated += (GameObject obj) =>
-            {
-                /* Add description text */
-                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
+        // public static void AddButtonToggleListItem(this ICustomLayoutedMenu list, string description, string submenu_name, Action on_button, Action<bool> set_value, Func<bool> get_value, bool update)
+        // {
+        //     var obj = list.AddCustomButton(ButtonToggleItem);
+        //     obj.OnInstanceCreated += (GameObject obj) =>
+        //     {
+        //         /* Add description text */
+        //         obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
-                /* Configure button */
-                var button = obj.transform.GetChild(1);
-                button.GetComponentInChildren<TMP_Text>().text = submenu_name;
-                button.GetComponent<Button>().onClick.AddListener(on_button);
+        //         /* Configure button */
+        //         var button = obj.transform.GetChild(1);
+        //         button.GetComponentInChildren<TMP_Text>().text = submenu_name;
+        //         button.GetComponent<Button>().onClick.AddListener(on_button);
 
-                /* Configure toggle */
-                var toggle = obj.transform.GetChild(2).GetComponent<Toggle>();
-                toggle.isOn = get_value();
-                toggle.onValueChanged.AddListener(set_value);
+        //         /* Configure toggle */
+        //         var toggle = obj.transform.GetChild(2).GetComponent<Toggle>();
+        //         toggle.isOn = get_value();
+        //         toggle.onValueChanged.AddListener(set_value);
 
-                /* Configure updater */
-                if (update)
-                {
-                    var updater = obj.AddComponent<Updater>();
-                    updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
-                }
-            };
-        }
+        //         /* Configure updater */
+        //         if (update)
+        //         {
+        //             var updater = obj.AddComponent<Updater>();
+        //             updater.callback = () => { toggle.SetIsOnWithoutNotify(get_value()); };
+        //         }
+        //     };
+        // }
 
-        public static void AddDropdownListItem(this ICustomLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state)
-        {
-            var obj = list.AddCustomButton(DropdownListItem);
-            obj.OnInstanceCreated += (GameObject obj) =>
-            {
-                /* Add description text */
-                obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
+        // public static void AddDropdownListItem(this ICustomLayoutedMenu list, string description, Type values, Action<int> on_change, int initial_state)
+        // {
+        //     var obj = list.AddCustomButton(DropdownListItem);
+        //     obj.OnInstanceCreated += (GameObject obj) =>
+        //     {
+        //         /* Add description text */
+        //         obj.transform.GetChild(0).GetComponent<TMP_Text>().text = description;
 
-                /* Configure Enum Dropdown */
-                var dropdown = obj.transform.GetChild(1).GetComponent<TMP_Dropdown>();
-                var options = new Il2CppSystem.Collections.Generic.List<string> { };
-                foreach (var name in Enum.GetNames(values))
-                    options.Add(name);
-                dropdown.ClearOptions();
-                dropdown.AddOptions(options);
-                dropdown.value = initial_state;
-                dropdown.onValueChanged.AddListener(on_change);
-            };
-        }
+        //         /* Configure Enum Dropdown */
+        //         var dropdown = obj.transform.GetChild(1).GetComponent<TMP_Dropdown>();
+        //         var options = new Il2CppSystem.Collections.Generic.List<string> { };
+        //         foreach (var name in Enum.GetNames(values))
+        //             options.Add(name);
+        //         dropdown.ClearOptions();
+        //         dropdown.AddOptions(options);
+        //         dropdown.value = initial_state;
+        //         dropdown.onValueChanged.AddListener(on_change);
+        //     };
+        // }
 
-        private static void AddGenericHeader(this ICustomLayoutedMenu menu, GameObject layout, string header)
-        {
-            var obj = menu.AddCustomButton(layout);
-            obj.OnInstanceCreated += obj =>
-            {
-                obj.GetComponentInChildren<TMP_Text>().text = header;
-            };
-        }
+        // private static void AddGenericHeader(this ICustomLayoutedMenu menu, GameObject layout, string header)
+        // {
+        //     var obj = menu.AddCustomButton(layout);
+        //     obj.OnInstanceCreated += obj =>
+        //     {
+        //         obj.GetComponentInChildren<TMP_Text>().text = header;
+        //     };
+        // }
 
-        public static void AddHeader(this ICustomLayoutedMenu menu, string header)
-        {
-            menu.AddGenericHeader(Header, header);
-        }
+        // public static void AddHeader(this ICustomLayoutedMenu menu, string header)
+        // {
+        //     menu.AddGenericHeader(Header, header);
+        // }
 
-        public static void AddCategoryHeader(this ICustomLayoutedMenu menu, string header)
-        {
-            menu.AddGenericHeader(CategoryHeader, header);
-        }
+        // public static void AddCategoryHeader(this ICustomLayoutedMenu menu, string header)
+        // {
+        //     menu.AddGenericHeader(CategoryHeader, header);
+        // }
     }
 }
