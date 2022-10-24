@@ -11,7 +11,12 @@
         <TargetFramework>net472</TargetFramework>
         <LangVersion>latest</LangVersion>
 
-        <AssemblySearchPaths>$(AssemblySearchPaths);$(VRChatPath)\MelonLoader;$(VRChatPath)\MelonLoader\Managed</AssemblySearchPaths>
+        <AssemblySearchPaths>
+            $(AssemblySearchPaths);
+            $(VRChatPath)\Mods;
+            $(VRChatPath)\UserLibs;
+            $(VRChatPath)\MelonLoader;
+            $(VRChatPath)\MelonLoader\Managed;</AssemblySearchPaths>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,6 +26,11 @@
             <SpecificVersion>False</SpecificVersion>
         </Reference>
         <Reference Include="0Harmony">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <!-- Mod libraries -->
+        <Reference Include="ActionMenuApi">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>

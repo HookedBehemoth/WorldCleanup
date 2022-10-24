@@ -21,13 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using static Polyfill;
-
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
-using VRCPlayer = MonoBehaviour1PublicOb_pOb_c_pStTeObBoStUnique;
-using PlayableController = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique;
-using AvatarParameter = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique.ObjectNPublicInObInPaSiInInUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 

@@ -27,9 +27,13 @@ using UnityEngine.SceneManagement;
 using VRC;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
+using ActionMenuApi.Api;
 
 using static Polyfill;
 
+using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+using AvatarParameter = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique.ObjectNPublicInObInPaSiInInUnique;
+using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 
@@ -82,155 +86,156 @@ namespace WorldCleanup
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
 
-            // AMUtils.AddToModsFolder("Player Toggles", () =>
-            // {
-            //     /* Filter inactive avatar objects */
-            //     s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
+            AMUtils.AddToModsFolder("Player Toggles", () =>
+            {
+                /* Filter inactive avatar objects */
+                s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
 
-            //     /* Order by physical distance to camera */
-            //     var query = from player in s_PlayerList
-            //                 orderby Vector3.Distance(player.Value.transform.position, Camera.main.transform.position)
-            //                 select player;
+                /* Order by physical distance to camera */
+                var query = from player in s_PlayerList
+                            orderby Vector3.Distance(player.Value.transform.position, Camera.main.transform.position)
+                            select player;
 
-            //     /* Only allow a max of 10 players there at once */
-            //     /* TODO: Consider adding multiple pages */
-            //     var remaining_count = 10;
+                /* Only allow a max of 10 players there at once */
+                /* TODO: Consider adding multiple pages */
+                var remaining_count = 10;
 
-            //     foreach (var entry in query)
-            //     {
-            //         var manager = entry.Value.GetComponentInParent<VRCAvatarManager>();
+                foreach (var entry in query)
+                {
+                    var manager = entry.Value.GetComponentInParent<VRCAvatarManager>();
 
-            //         /* Ignore SDK2 & avatars w/o custom expressions */
-            //         if (!manager.HasCustomExpressions())
-            //             continue;
+                    /* Ignore SDK2 & avatars w/o custom expressions */
+                    if (!manager.HasCustomExpressions())
+                        continue;
 
-            //         var avatar_id = entry.Value.GetComponent<VRC.Core.PipelineManager>().blueprintId;
-            //         var user_icon = s_Portraits[avatar_id].Get();
+                    var avatar_id = entry.Value.GetComponent<VRC.Core.PipelineManager>().blueprintId;
+                    var user_icon = s_Portraits[avatar_id].Get();
 
-            //         /* Source default expression icon */
-            //         var menu_icons = ActionMenuDriver.prop_ActionMenuDriver_0.field_Public_MenuIcons_0;
-            //         var default_expression = menu_icons.defaultExpression;
+                    /* Source default expression icon */
+                    /* TODO: add endpoint to ActionMenuApi for that */
+                    var menu_icons = MonoBehaviourPublicObGaObAcMeObEmExObPeUnique.field_Public_Static_MonoBehaviourPublicObGaObAcMeObEmExObPeUnique_0.field_Public_MenuIcons_0;
+                    var default_expression = menu_icons.defaultExpression;
 
-            //         CustomSubMenu.AddSubMenu(entry.Key, () =>
-            //         {
-            //             if (entry.Value == null || !entry.Value.active)
-            //                 return;
+                    CustomSubMenu.AddSubMenu(entry.Key, () =>
+                    {
+                        if (entry.Value == null || !entry.Value.active)
+                            return;
 
-            //             var parameters = manager.GetAllAvatarParameters();
-            //             var filtered = Parameters.FilterDefaultParameters(parameters);
-            //             var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
+                        var parameters = manager.GetAllAvatarParameters();
+                        var filtered = Parameters.FilterDefaultParameters(parameters);
+                        var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-            //             CustomSubMenu.AddToggle("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
-            //             CustomSubMenu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
+                        CustomSubMenu.AddToggle("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
+                        CustomSubMenu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
-            //             AvatarParameter FindParameter(string name)
-            //             {
-            //                 foreach (var parameter in parameters)
-            //                     if (parameter.field_Private_String_0 == name)
-            //                         return parameter;
-            //                 return null;
-            //             }
+                        AvatarParameterAccess FindParameter(string name)
+                        {
+                            foreach (var parameter in parameters)
+                                if (parameter.field_Private_String_0 == name)
+                                    return parameter;
+                            return null;
+                        }
 
-            //             void ExpressionSubmenu(VRCExpressionsMenu expressions_menu)
-            //             {
-            //                 if (entry.Value == null || !entry.Value.active)
-            //                     return;
+                        void ExpressionSubmenu(VRCExpressionsMenu expressions_menu)
+                        {
+                            if (entry.Value == null || !entry.Value.active)
+                                return;
 
-            //                 void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback)
-            //                 {
-            //                     CustomSubMenu.AddFourAxisPuppet(
-            //                         control.TruncatedName(),
-            //                         callback,
-            //                         icon: control.icon ?? default_expression,
-            //                         topButtonText: control.labels[0]?.TruncatedName() ?? "Up",
-            //                         rightButtonText: control.labels[1]?.TruncatedName() ?? "Right",
-            //                         downButtonText: control.labels[2]?.TruncatedName() ?? "Down",
-            //                         leftButtonText: control.labels[3]?.TruncatedName() ?? "Left");
-            //                 }
+                            void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback)
+                            {
+                                CustomSubMenu.AddFourAxisPuppet(
+                                    control.TruncatedName(),
+                                    callback,
+                                    icon: control.icon ?? default_expression,
+                                    topButtonText: control.labels[0]?.TruncatedName() ?? "Up",
+                                    rightButtonText: control.labels[1]?.TruncatedName() ?? "Right",
+                                    downButtonText: control.labels[2]?.TruncatedName() ?? "Down",
+                                    leftButtonText: control.labels[3]?.TruncatedName() ?? "Left");
+                            }
 
-            //                 foreach (var control in expressions_menu.controls)
-            //                 {
-            //                     try
-            //                     {
-            //                         switch (control.type)
-            //                         {
-            //                             case VRCExpressionsMenu.Control.ControlType.Button:
-            //                             /* Note: Action Menu "Buttons" are actually Toggles */
-            //                             /*       that set on press and revert on release.   */
-            //                             /* TODO: Add proper implementation.                 */
-            //                             case VRCExpressionsMenu.Control.ControlType.Toggle:
-            //                                 {
-            //                                     var param = FindParameter(control.parameter.name);
-            //                                     var current_value = param.GetValue();
-            //                                     var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
-            //                                     var target_value = control.value;
-            //                                     void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
-            //                                     void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
+                            foreach (var control in expressions_menu.controls)
+                            {
+                                try
+                                {
+                                    switch (control.type)
+                                    {
+                                        case VRCExpressionsMenu.Control.ControlType.Button:
+                                        /* Note: Action Menu "Buttons" are actually Toggles */
+                                        /*       that set on press and revert on release.   */
+                                        /* TODO: Add proper implementation.                 */
+                                        case VRCExpressionsMenu.Control.ControlType.Toggle:
+                                            {
+                                                var param = FindParameter(control.parameter.name);
+                                                var current_value = param.GetValue();
+                                                var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
+                                                var target_value = control.value;
+                                                void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
+                                                void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
 
-            //                                     CustomSubMenu.AddToggle(
-            //                                         control.TruncatedName(),
-            //                                         current_value == target_value,
-            //                                         param.field_Public_ParameterType_0 == AvatarParameter.ParameterType.Bool ? SetBool : SetIntFloat,
-            //                                         icon: control.icon ?? default_expression);
-            //                                     break;
-            //                                 }
+                                                CustomSubMenu.AddToggle(
+                                                    control.TruncatedName(),
+                                                    current_value == target_value,
+                                                    param.GetAvatarParameterType() == AvatarParameterType.Bool ? SetBool : SetIntFloat,
+                                                    icon: control.icon ?? default_expression);
+                                                break;
+                                            }
 
-            //                             case VRCExpressionsMenu.Control.ControlType.SubMenu:
-            //                                 {
-            //                                     CustomSubMenu.AddSubMenu(control.TruncatedName(), () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
-            //                                     break;
-            //                                 }
+                                        case VRCExpressionsMenu.Control.ControlType.SubMenu:
+                                            {
+                                                CustomSubMenu.AddSubMenu(control.TruncatedName(), () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
+                                                break;
+                                            }
 
-            //                             case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
-            //                                 {
-            //                                     var horizontal = FindParameter(control.subParameters[0]?.name);
-            //                                     var vertical = FindParameter(control.subParameters[1]?.name);
-            //                                     FourAxisControl(control, (value) =>
-            //                                     {
-            //                                         horizontal.SetFloatProperty(value.x);
-            //                                         vertical.SetFloatProperty(value.y);
-            //                                     });
-            //                                     break;
-            //                                 }
+                                        case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
+                                            {
+                                                var horizontal = FindParameter(control.subParameters[0]?.name);
+                                                var vertical = FindParameter(control.subParameters[1]?.name);
+                                                FourAxisControl(control, (value) =>
+                                                {
+                                                    horizontal.SetFloatProperty(value.x);
+                                                    vertical.SetFloatProperty(value.y);
+                                                });
+                                                break;
+                                            }
 
-            //                             case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
-            //                                 {
-            //                                     var up = FindParameter(control.subParameters[0]?.name);
-            //                                     var down = FindParameter(control.subParameters[1]?.name);
-            //                                     var left = FindParameter(control.subParameters[2]?.name);
-            //                                     var right = FindParameter(control.subParameters[3]?.name);
-            //                                     FourAxisControl(control, (value) =>
-            //                                     {
-            //                                         up.SetFloatProperty(Math.Max(0, value.y));
-            //                                         down.SetFloatProperty(-Math.Min(0, value.y));
-            //                                         left.SetFloatProperty(Math.Max(0, value.x));
-            //                                         right.SetFloatProperty(-Math.Min(0, value.x));
-            //                                     });
-            //                                     break;
-            //                                 }
+                                        case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
+                                            {
+                                                var up = FindParameter(control.subParameters[0]?.name);
+                                                var down = FindParameter(control.subParameters[1]?.name);
+                                                var left = FindParameter(control.subParameters[2]?.name);
+                                                var right = FindParameter(control.subParameters[3]?.name);
+                                                FourAxisControl(control, (value) =>
+                                                {
+                                                    up.SetFloatProperty(Math.Max(0, value.y));
+                                                    down.SetFloatProperty(-Math.Min(0, value.y));
+                                                    left.SetFloatProperty(Math.Max(0, value.x));
+                                                    right.SetFloatProperty(-Math.Min(0, value.x));
+                                                });
+                                                break;
+                                            }
 
-            //                             case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
-            //                                 {
-            //                                     var param = FindParameter(control.subParameters[0]?.name);
-            //                                     CustomSubMenu.AddRestrictedRadialPuppet(control.TruncatedName(), param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
-            //                                     break;
-            //                                 }
-            //                         }
-            //                     }
-            //                     catch (Exception e)
-            //                     {
-            //                         MelonLogger.Error(e.StackTrace);
-            //                     }
-            //                 }
-            //             }
+                                        case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
+                                            {
+                                                var param = FindParameter(control.subParameters[0]?.name);
+                                                CustomSubMenu.AddRestrictedRadialPuppet(control.TruncatedName(), param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
+                                                break;
+                                            }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    MelonLogger.Error(e.StackTrace);
+                                }
+                            }
+                        }
 
-            //             ExpressionSubmenu(avatar_descriptor.expressionsMenu);
-            //         }, icon: user_icon);
+                        ExpressionSubmenu(avatar_descriptor.expressionsMenu);
+                    }, icon: user_icon);
 
-            //         if (--remaining_count == 0)
-            //             break;
-            //     }
-            // });
+                    if (--remaining_count == 0)
+                        break;
+                }
+            });
 
             MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
         }
@@ -384,27 +389,11 @@ namespace WorldCleanup
 
         public override void OnGUI()
         {
+            return;
+
             var noop = new GUILayoutOption[] {};
             if (GUILayout.Button("Press Me", noop))
                 MelonLogger.Msg("Hello!");
-            
-            // /* PlayerMods */
-            // settings_menu.AddSimpleButton("Player Mods", () =>
-            // {
-            //     var player = Networking.LocalPlayer;
-
-            //     var player_menu = ExpansionKitApi.CreateCustomQuickMenuPage(LayoutDescription.WideSlimList);
-            //     player_menu.AddHeader("Player Mod Settings");
-
-            //     player_menu.AddFloatDiffListItem("Jump Impulse", player.SetJumpImpulse, player.GetJumpImpulse);
-            //     player_menu.AddFloatDiffListItem("Run Speed", player.SetRunSpeed, player.GetRunSpeed);
-            //     player_menu.AddFloatDiffListItem("Walk Speed", player.SetWalkSpeed, player.GetWalkSpeed);
-            //     player_menu.AddFloatDiffListItem("Strafe Speed", player.SetStrafeSpeed, player.GetStrafeSpeed);
-            //     player_menu.AddFloatDiffListItem("Gravity Strength", player.SetGravityStrength, player.GetGravityStrength);
-
-            //     player_menu.AddSimpleButton("Back", () => { player_menu.Hide(); MainMenu(); });
-            //     player_menu.Show();
-            // });
 
             var player = Networking.LocalPlayer;
 
