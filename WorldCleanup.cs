@@ -113,7 +113,7 @@ namespace WorldCleanup
 
                     /* Source default expression icon */
                     /* TODO: add endpoint to ActionMenuApi for that */
-                    var menu_icons = MonoBehaviourPublicObGaObAcMeObEmExObPeUnique.field_Public_Static_MonoBehaviourPublicObGaObAcMeObEmExObPeUnique_0.field_Public_MenuIcons_0;
+                    var menu_icons = MonoBehaviourPublicObGaObAcCoObMeEmObExUnique.field_Public_Static_MonoBehaviourPublicObGaObAcCoObMeEmObExUnique_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
                     CustomSubMenu.AddSubMenu(entry.Key, () =>
@@ -166,6 +166,10 @@ namespace WorldCleanup
                                         case VRCExpressionsMenu.Control.ControlType.Toggle:
                                             {
                                                 var param = FindParameter(control.parameter.name);
+                                                if (param == null) {
+                                                    MelonLogger.Msg($"Parameter {control.parameter.name} not found");
+                                                    continue;
+                                                };
                                                 var current_value = param.GetValue();
                                                 var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
                                                 var target_value = control.value;
