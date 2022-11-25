@@ -21,8 +21,8 @@ using VRC.SDKBase;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
 using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
-using VRCPlayer = MonoBehaviour1PublicOb_pOb_c_pStTeObBoStUnique;
-using AvatarPlayableController = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique;
+using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoStUnique;
+using AvatarPlayableController = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
@@ -36,7 +36,7 @@ public static class Polyfill {
     }
 
     public static AvatarPlayableController GetAvatarPlayableController(this VRCAvatarManager _this) {
-        return _this.field_Private_MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique_0;
+        return _this.field_Private_MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique_0;
     }
 
     public static Dictionary<int, AvatarParameterAccess> GetParameters(this AvatarPlayableController _this) {

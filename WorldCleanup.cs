@@ -32,7 +32,7 @@ using ActionMenuApi.Api;
 using static Polyfill;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameter = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique.ObjectNPublicInObInPaSiInInUnique;
+using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
