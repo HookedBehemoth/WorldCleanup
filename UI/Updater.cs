@@ -33,5 +33,9 @@ namespace WorldCleanup.UI {
                 callback();
             }
         }
+
+        public static void Register() {
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<Updater>();
+        }
     }
 }

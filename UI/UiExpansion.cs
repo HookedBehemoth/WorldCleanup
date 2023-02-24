@@ -28,7 +28,7 @@ namespace WorldCleanup
 {
     static class UiExpansion
     {
-        private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem, Header, CategoryHeader;
+        // private static GameObject IntChanger, FloatSlider, ButtonToggleItem, ComponentToggle, DropdownListItem, Header, CategoryHeader;
         public static Texture2D SaveIcon, LockClosedIcon, LockOpenIcon;
         public static GameObject PreviewCamera;
         public static Material InvisibleMaterial;
@@ -69,33 +69,35 @@ namespace WorldCleanup
 
             InvisibleMaterial = LoadGeneric<Material>("Assets/Invisible/InvisibleMaterial.mat");
 
+            yield break;
+
             /* Get UIExpansionKit GameObject parent */
-            GameObject parent;
-            do
-            {
-                yield return new WaitForSeconds(1f);
-                parent = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/ModUiPreloadedBundleContents");
-            } while (parent == null);
+            // GameObject parent;
+            // do
+            // {
+            //     yield return new WaitForSeconds(1f);
+            //     parent = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/ModUiPreloadedBundleContents");
+            // } while (parent == null);
 
-            GameObject LoadUiElement(string str)
-            {
-                var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
+            // GameObject LoadUiElement(string str)
+            // {
+            //     var bundle_object = asset_bundle.LoadAsset<GameObject>(str);
 
-                /* Attach it to QuickMenu to inherit render queue changes */
-                var instantiated_object = GameObject.Instantiate(bundle_object, parent.transform);
-                instantiated_object.SetActive(true);
-                instantiated_object.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+            //     /* Attach it to QuickMenu to inherit render queue changes */
+            //     var instantiated_object = GameObject.Instantiate(bundle_object, parent.transform);
+            //     instantiated_object.SetActive(true);
+            //     instantiated_object.hideFlags |= HideFlags.DontUnloadUnusedAsset;
 
-                return instantiated_object;
-            }
+            //     return instantiated_object;
+            // }
 
-            IntChanger = LoadUiElement("Assets/UI/IntChanger.prefab");
-            FloatSlider = LoadUiElement("Assets/UI/FloatSlider.prefab");
-            ButtonToggleItem = LoadUiElement("Assets/UI/ButtonToggleItem.prefab");
-            ComponentToggle = LoadUiElement("Assets/UI/ComponentToggle.prefab");
-            DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
-            Header = LoadUiElement("Header");
-            CategoryHeader = LoadUiElement("CategoryHeader");
+            // IntChanger = LoadUiElement("Assets/UI/IntChanger.prefab");
+            // FloatSlider = LoadUiElement("Assets/UI/FloatSlider.prefab");
+            // ButtonToggleItem = LoadUiElement("Assets/UI/ButtonToggleItem.prefab");
+            // ComponentToggle = LoadUiElement("Assets/UI/ComponentToggle.prefab");
+            // DropdownListItem = LoadUiElement("Assets/UI/DropDown.prefab");
+            // Header = LoadUiElement("Header");
+            // CategoryHeader = LoadUiElement("CategoryHeader");
         }
 
         // public static void AddIntDiffListItem(this ICustomLayoutedMenu list, string description, Action<int> set_value, Func<int> get_value)

@@ -18,25 +18,26 @@ using UnityEngine;
 using Il2CppSystem.Collections.Generic;
 
 using VRC.SDKBase;
+using VRC;
 
-using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
-using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoStUnique;
-using AvatarPlayableController = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique;
+// using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+// using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
+// using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoStUnique;
+// using AvatarPlayableController = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
 public static class Polyfill {
     public static void RegisterAvatarCallback(Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor> callback) {
-        VRCAvatarManager.field_Private_Static_Action_3_MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique_GameObject_VRC_AvatarDescriptor_0 += callback;
+        VRCAvatarManager.field_Private_Static_Action_3_Player_GameObject_VRC_AvatarDescriptor_0 += callback;
     }
 
     public static VRCAvatarManager GetVRCAvatarManager(this VRCPlayer _this) {
-        return _this.prop_MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique_0;
+        return _this.prop_VRCAvatarManager_0;
     }
 
     public static AvatarPlayableController GetAvatarPlayableController(this VRCAvatarManager _this) {
-        return _this.field_Private_MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique_0;
+        return _this.field_Private_AvatarPlayableController_0;
     }
 
     public static Dictionary<int, AvatarParameterAccess> GetParameters(this AvatarPlayableController _this) {

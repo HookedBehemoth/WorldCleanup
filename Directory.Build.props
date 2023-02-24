@@ -29,6 +29,10 @@
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
         <!-- Mod libraries -->
         <Reference Include="ActionMenuApi">
             <Private>False</Private>
@@ -92,8 +96,28 @@
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
+        <Reference Include="VRC.UI.Core">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="VRC.UI.Elements">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="VRC.UI.Shared">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="VRC.Utility">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="DataModel">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
         <!-- Game libraries -->
-        <Reference Include="Newtonsoft.Json">
+        <Reference Include="Unity.TextMeshPro">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
@@ -103,6 +127,22 @@
             <SpecificVersion>False</SpecificVersion>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="UnityEngine.UIElementsModule">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>

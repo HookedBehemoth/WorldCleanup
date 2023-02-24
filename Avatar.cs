@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+// using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
 

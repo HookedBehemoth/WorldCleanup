@@ -5,6 +5,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+<PropertyGroup>
+  <DefaultItemExcludes>$(DefaultItemExcludes);UI/QuickMenu/*;UI/Wings/*</DefaultItemExcludes>
+</PropertyGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="mod.assetbundle" />
   </ItemGroup>

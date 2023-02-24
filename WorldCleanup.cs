@@ -31,10 +31,10 @@ using ActionMenuApi.Api;
 
 using static Polyfill;
 
-using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
+// using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+// using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
-using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
+// using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
 
 [assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
@@ -53,7 +53,7 @@ namespace WorldCleanup
 
         public override void OnInitializeMelon()
         {
-            UIExpansionKit.Components.DestroyListener.Register();
+            // UIExpansionKit.Components.DestroyListener.Register();
 
             /* Register settings */
             Settings.RegisterConfig();
@@ -86,6 +86,8 @@ namespace WorldCleanup
                 Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
 
+            // MelonCoroutines.Start(WaitForUi());
+
             AMUtils.AddToModsFolder("Player Toggles", () =>
             {
                 /* Filter inactive avatar objects */
@@ -113,7 +115,7 @@ namespace WorldCleanup
 
                     /* Source default expression icon */
                     /* TODO: add endpoint to ActionMenuApi for that */
-                    var menu_icons = MonoBehaviourPublicObGaObAcCoObMeEmObExUnique.field_Public_Static_MonoBehaviourPublicObGaObAcCoObMeEmObExUnique_0.field_Public_MenuIcons_0;
+                    var menu_icons = ActionMenuDriver.field_Public_Static_ActionMenuDriver_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
                     CustomSubMenu.AddSubMenu(entry.Key, () =>
@@ -391,39 +393,39 @@ namespace WorldCleanup
             }
         }
 
-        public override void OnGUI()
-        {
-            return;
+        // public override void OnGUI()
+        // {
+        //     return;
 
-            var noop = new GUILayoutOption[] {};
-            if (GUILayout.Button("Press Me", noop))
-                MelonLogger.Msg("Hello!");
+        //     var noop = new GUILayoutOption[] {};
+        //     if (GUILayout.Button("Press Me", noop))
+        //         MelonLogger.Msg("Hello!");
 
-            var player = Networking.LocalPlayer;
+        //     var player = Networking.LocalPlayer;
 
-            if (player != null) {
+        //     if (player != null) {
 
-                void FloatSlider(string name, float min, float max, Action<float> set_value, Func<float> get_value) {
-                    GUILayout.BeginHorizontal("Opt", noop);
-                    GUILayout.Label(name, noop);
-                    var prev = get_value();
-                    var value = GUILayout.TextField(prev.ToString(), noop);
-                    var val_float = float.Parse(value);
-                    if (prev != val_float) {
-                        set_value(val_float);
-                    }
-                    GUILayout.EndHorizontal();
-                }
+        //         void FloatSlider(string name, float min, float max, Action<float> set_value, Func<float> get_value) {
+        //             GUILayout.BeginHorizontal("Opt", noop);
+        //             GUILayout.Label(name, noop);
+        //             var prev = get_value();
+        //             var value = GUILayout.TextField(prev.ToString(), noop);
+        //             var val_float = float.Parse(value);
+        //             if (prev != val_float) {
+        //                 set_value(val_float);
+        //             }
+        //             GUILayout.EndHorizontal();
+        //         }
 
-                GUILayout.Label("Player Mods", noop);
+        //         GUILayout.Label("Player Mods", noop);
 
-                FloatSlider("Jump Impulse", 0.0f, 30.0f, player.SetJumpImpulse, player.GetJumpImpulse);
-                FloatSlider("Run Speed", 0.0f, 10.0f, player.SetRunSpeed, player.GetRunSpeed);
-                FloatSlider("Walk Speed", 0.0f, 10.0f, player.SetWalkSpeed, player.GetWalkSpeed);
-                FloatSlider("Strafe Speed", 0.0f, 10.0f, player.SetStrafeSpeed, player.GetStrafeSpeed);
-                FloatSlider("Gravity Strength", 0.0f, 10.0f, player.SetGravityStrength, player.GetGravityStrength);
-            }
-        }
+        //         FloatSlider("Jump Impulse", 0.0f, 30.0f, player.SetJumpImpulse, player.GetJumpImpulse);
+        //         FloatSlider("Run Speed", 0.0f, 10.0f, player.SetRunSpeed, player.GetRunSpeed);
+        //         FloatSlider("Walk Speed", 0.0f, 10.0f, player.SetWalkSpeed, player.GetWalkSpeed);
+        //         FloatSlider("Strafe Speed", 0.0f, 10.0f, player.SetStrafeSpeed, player.GetStrafeSpeed);
+        //         FloatSlider("Gravity Strength", 0.0f, 10.0f, player.SetGravityStrength, player.GetGravityStrength);
+        //     }
+        // }
 
         // private void MainMenu()
         // {
