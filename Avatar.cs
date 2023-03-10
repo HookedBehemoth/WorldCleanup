@@ -22,8 +22,8 @@ using System.Linq;
 using UnityEngine;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
-using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
 namespace WorldCleanup
 {
@@ -57,7 +57,7 @@ namespace WorldCleanup
         };
 
         public static List<AvatarParameterAccess> FilterDefaultParameters(IEnumerable<AvatarParameterAccess> src)
-            => src.Where(param => !DefaultParameterNames.Contains(param.field_Private_String_0)).ToList();
+            => src.Where(param => !DefaultParameterNames.Contains(param.field_Protected_String_0)).ToList();
 
         class Parameter
         {
@@ -174,7 +174,7 @@ namespace WorldCleanup
             /* Apply parameters */
             if (config.parameters != null)
                 foreach (var parameter in manager.GetAvatarParameters())
-                    config.parameters[parameter.field_Private_String_0].Apply(parameter);
+                    config.parameters[parameter.field_Protected_String_0].Apply(parameter);
 
             /* Apply Meshes */
             if (config.renderers != null)
@@ -194,7 +194,7 @@ namespace WorldCleanup
             {
                 name = api_avatar.name,
                 version = api_avatar.version,
-                parameters = manager.GetAvatarParameters()?.ToDictionary(o => o.field_Private_String_0, o => new Parameter(o)),
+                parameters = manager.GetAvatarParameters()?.ToDictionary(o => o.field_Protected_String_0, o => new Parameter(o)),
                 renderers = manager.GetAvatarRenderers().Select(o => o.gameObject.active && o.enabled).ToList(),
             };
 
@@ -278,7 +278,7 @@ namespace WorldCleanup
                                   .expressionParameters;
             foreach (var parameter in manager.GetAvatarParameters())
             {
-                parameter.SetValue(defaults.FindParameter(parameter.field_Private_String_0).defaultValue);
+                parameter.SetValue(defaults.FindParameter(parameter.field_Protected_String_0).defaultValue);
                 parameter.Unlock();
             }
         }

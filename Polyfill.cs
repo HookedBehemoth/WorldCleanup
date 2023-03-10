@@ -20,15 +20,15 @@ using Il2CppSystem.Collections.Generic;
 using VRC.SDKBase;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
-using VRCPlayer = MonoBehaviour1PublicOb_pOb_c_pStTeObBoStUnique;
-using AvatarPlayableController = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique;
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
-using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
+using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoStUnique;
+using AvatarPlayableController = MonoBehaviour1PublicAcBoAcHaBo1AcInFu4Unique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
-public static class Polyfill {
+public static class Polyfill {  
     public static void RegisterAvatarCallback(Il2CppSystem.Action<Player, GameObject, VRC_AvatarDescriptor> callback) {
-        VRCAvatarManager.field_Private_Static_Action_3_MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique_GameObject_VRC_AvatarDescriptor_0 += callback;
+        VRCAvatarManager.field_Private_Static_Action_3_MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique_GameObject_VRC_AvatarDescriptor_0 += callback;
     }
 
     public static VRCAvatarManager GetVRCAvatarManager(this VRCPlayer _this) {
@@ -36,11 +36,13 @@ public static class Polyfill {
     }
 
     public static AvatarPlayableController GetAvatarPlayableController(this VRCAvatarManager _this) {
-        return _this.field_Private_MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique_0;
+        // return _this.field_Private_MonoBehaviour1PublicOb_vInByInBoObBySiObUnique_0;
+        return _this.field_Private_MonoBehaviour1PublicAcBoAcHaBo1AcInFu4Unique_0;
     }
 
     public static Dictionary<int, AvatarParameterAccess> GetParameters(this AvatarPlayableController _this) {
-        return _this.field_Private_Dictionary_2_Int32_ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique_0;
+        // return _this.field_Private_Dictionary_2_Int32_ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique_0;
+        return _this.field_Private_Dictionary_2_Int32_ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique_0;
     }
 
     public static AvatarParameterType GetAvatarParameterType(this AvatarParameterAccess _this) {

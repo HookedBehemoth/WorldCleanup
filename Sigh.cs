@@ -18,7 +18,7 @@
 /* Note: While loading a 400KiB string isn't really a    */
 /*       problem, trying to render that to a texture is. */
 
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 
 namespace WorldCleanup
 {
@@ -44,6 +44,6 @@ namespace WorldCleanup
             => label.name?.Truncate(32);
 
         public static string TruncatedName(this AvatarParameterAccess param)
-            => param.field_Private_String_0?.Truncate(32);
+            => param.field_Protected_String_0?.Truncate(32);
     }
 }

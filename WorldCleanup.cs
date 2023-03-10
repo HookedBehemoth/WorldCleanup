@@ -32,10 +32,10 @@ using ActionMenuApi.Api;
 using static Polyfill;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameter = MonoBehaviour1PublicInBySiByObSiPlAnDiInUnique.ObjectNPublicInObInPaSiInInUnique;
-using AvatarParameterType = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique.EnumNPublicSealedvaUnBoInFl5vUnique;
-using Player = MonoBehaviourPublicAPOb_v_pObBo_UBoVRObUnique;
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessAnStInObLi1BoObSiAcUnique;
+// using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
+using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 
 [assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
@@ -131,7 +131,7 @@ namespace WorldCleanup
                         AvatarParameterAccess FindParameter(string name)
                         {
                             foreach (var parameter in parameters)
-                                if (parameter.field_Private_String_0 == name)
+                                if (parameter.field_Protected_String_0 == name)
                                     return parameter;
                             return null;
                         }
