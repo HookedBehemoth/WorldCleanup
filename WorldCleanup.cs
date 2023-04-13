@@ -113,7 +113,8 @@ namespace WorldCleanup
 
                     /* Source default expression icon */
                     /* TODO: add endpoint to ActionMenuApi for that */
-                    var menu_icons = MonoBehaviourPublicObGaObAcCoObMeEmObExUnique.field_Public_Static_MonoBehaviourPublicObGaObAcCoObMeEmObExUnique_0.field_Public_MenuIcons_0;
+                    // var menu_icons = MonoBehaviourPublicObGaObAcCoObMeEmObExUnique.field_Public_Static_MonoBehaviourPublicObGaObAcCoObMeEmObExUnique_0.field_Public_MenuIcons_0;
+                    var menu_icons = MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique.field_Public_Static_MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
                     CustomSubMenu.AddSubMenu(entry.Key, () =>
