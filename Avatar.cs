@@ -238,7 +238,7 @@ namespace WorldCleanup
             if (parameter == null) return 0f;
             return parameter.GetAvatarParameterType() switch
             {
-                AvatarParameterType.Bool => parameter.prop_Boolean_1 ? 1f : 0f,
+                AvatarParameterType.Bool => parameter.prop_Boolean_2 ? 1f : 0f,
                 AvatarParameterType.Int => parameter.prop_Int32_1,
                 AvatarParameterType.Float => parameter.prop_Single_1,
                 _ => 0f,

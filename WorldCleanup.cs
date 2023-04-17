@@ -113,7 +113,6 @@ namespace WorldCleanup
 
                     /* Source default expression icon */
                     /* TODO: add endpoint to ActionMenuApi for that */
-                    // var menu_icons = MonoBehaviourPublicObGaObAcCoObMeEmObExUnique.field_Public_Static_MonoBehaviourPublicObGaObAcCoObMeEmObExUnique_0.field_Public_MenuIcons_0;
                     var menu_icons = MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique.field_Public_Static_MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
@@ -126,7 +125,7 @@ namespace WorldCleanup
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-                        CustomSubMenu.AddToggle("Lock", filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
+                        CustomSubMenu.AddToggle("Lock", () => filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
                         CustomSubMenu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
                         AvatarParameterAccess FindParameter(string name)
@@ -154,6 +153,8 @@ namespace WorldCleanup
                                     leftButtonText: control.labels[3]?.TruncatedName() ?? "Left");
                             }
 
+                            List<Action> RefreshCallbacks = new();
+
                             foreach (var control in expressions_menu.controls)
                             {
                                 try
@@ -168,20 +169,33 @@ namespace WorldCleanup
                                             {
                                                 var param = FindParameter(control.parameter.name);
                                                 if (param == null) {
+                                                    CustomSubMenu.AddToggle(
+                                                        control.TruncatedName(),
+                                                        () => false,
+                                                        (val) => {},
+                                                        icon: control.icon ?? default_expression,
+                                                        true);
                                                     MelonLogger.Msg($"Parameter {control.parameter.name} not found");
-                                                    continue;
+                                                    break;
                                                 };
-                                                var current_value = param.GetValue();
                                                 var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
                                                 var target_value = control.value;
-                                                void SetIntFloat(bool state) => param.SetValue(state ? target_value : default_value);
-                                                void SetBool(bool state) => param.SetValue(state ? 1f : 0f);
+                                                void SetIntFloat(bool state) {
+                                                    param.SetValue(state ? target_value : default_value);
+                                                    foreach (var cb in RefreshCallbacks) cb();
+                                                }
+                                                void SetBool(bool state) {
+                                                    param.SetValue(state ? target_value : 0f);
+                                                    foreach (var cb in RefreshCallbacks) cb();
+                                                }
+                                                bool Get() => param.GetValue() == target_value;
 
-                                                CustomSubMenu.AddToggle(
+                                                var pedal = CustomSubMenu.AddToggle(
                                                     control.TruncatedName(),
-                                                    current_value == target_value,
+                                                    Get,
                                                     param.GetAvatarParameterType() == AvatarParameterType.Bool ? SetBool : SetIntFloat,
                                                     icon: control.icon ?? default_expression);
+                                                RefreshCallbacks.Add(() => pedal.SetActiveNoCallback(Get()));
                                                 break;
                                             }
 
