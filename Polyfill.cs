@@ -21,7 +21,7 @@ using VRC.SDKBase;
 
 using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
 using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
-using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoStUnique;
+using VRCPlayer = MonoBehaviour1PublicOb_pObGa_pStTeObBoSiUnique;
 using AvatarPlayableController = MonoBehaviour1PublicAcBoAcHaBo1AcInFu2Unique;
 using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
