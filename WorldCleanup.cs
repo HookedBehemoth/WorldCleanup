@@ -94,7 +94,7 @@ namespace WorldCleanup
                 Parameters._floatPropertySetterDelegate = float_hook.Trampoline;
             }
 
-            AMUtils.AddToModsFolder("Player Toggles", () =>
+            AMUtils.AddToModsFolder("Player Toggles", menu =>
             {
                 /* Filter inactive avatar objects */
                 s_PlayerList = s_PlayerList.Where(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
@@ -124,7 +124,7 @@ namespace WorldCleanup
                     var menu_icons = Il2Cpp.MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique.field_Public_Static_MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
-                    CustomSubMenu.AddSubMenu(entry.Key, () =>
+                    menu.AddSubMenu(entry.Key, menu =>
                     {
                         if (entry.Value == null || !entry.Value.active)
                             return;
@@ -133,8 +133,8 @@ namespace WorldCleanup
                         var filtered = Parameters.FilterDefaultParameters(parameters);
                         var avatar_descriptor = manager.prop_VRCAvatarDescriptor_0;
 
-                        CustomSubMenu.AddToggle("Lock", () => filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
-                        CustomSubMenu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
+                        menu.AddToggle("Lock", () => filtered.Any(Parameters.IsLocked), (state) => { filtered.ForEach(state ? Parameters.Lock : Parameters.Unlock); }, icon: UiExpansion.LockClosedIcon);
+                        menu.AddButton("Save", () => Parameters.StoreParameters(manager), icon: UiExpansion.SaveIcon);
 
                         AvatarParameterAccess FindParameter(string name)
                         {
@@ -149,11 +149,13 @@ namespace WorldCleanup
                             if (entry.Value == null || !entry.Value.active)
                                 return;
 
-                            void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback)
+                            void FourAxisControl(VRCExpressionsMenu.Control control, Action<Vector2> callback, Action onOpen, Action onClose)
                             {
-                                CustomSubMenu.AddFourAxisPuppet(
+                                menu.AddFourAxisPuppet(
                                     control.TruncatedName(),
                                     callback,
+                                    onOpen,
+                                    onClose,
                                     icon: control.icon ?? default_expression,
                                     topButtonText: control.labels[0]?.TruncatedName() ?? "Up",
                                     rightButtonText: control.labels[1]?.TruncatedName() ?? "Right",
@@ -176,11 +178,12 @@ namespace WorldCleanup
                                         case VRCExpressionsMenu.Control.ControlType.Toggle:
                                             {
                                                 var param = FindParameter(control.parameter.name);
-                                                if (param == null) {
-                                                    CustomSubMenu.AddToggle(
+                                                if (param == null)
+                                                {
+                                                    menu.AddToggle(
                                                         control.TruncatedName(),
                                                         () => false,
-                                                        (val) => {},
+                                                        (val) => { },
                                                         icon: control.icon ?? default_expression,
                                                         true);
                                                     MelonLogger.Msg($"Parameter {control.parameter.name} not found");
@@ -188,17 +191,19 @@ namespace WorldCleanup
                                                 };
                                                 var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
                                                 var target_value = control.value;
-                                                void SetIntFloat(bool state) {
+                                                void SetIntFloat(bool state)
+                                                {
                                                     param.SetValue(state ? target_value : default_value);
                                                     foreach (var cb in RefreshCallbacks) cb();
                                                 }
-                                                void SetBool(bool state) {
+                                                void SetBool(bool state)
+                                                {
                                                     param.SetValue(state ? target_value : 0f);
                                                     foreach (var cb in RefreshCallbacks) cb();
                                                 }
                                                 bool Get() => param.GetValue() == target_value;
 
-                                                var pedal = CustomSubMenu.AddToggle(
+                                                var pedal = menu.AddToggle(
                                                     control.TruncatedName(),
                                                     Get,
                                                     param.GetAvatarParameterType() == AvatarParameterType.Bool ? SetBool : SetIntFloat,
@@ -209,42 +214,68 @@ namespace WorldCleanup
 
                                         case VRCExpressionsMenu.Control.ControlType.SubMenu:
                                             {
-                                                CustomSubMenu.AddSubMenu(control.TruncatedName(), () => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
+                                                menu.AddSubMenu(control.TruncatedName(), menu => ExpressionSubmenu(control.subMenu), icon: control.icon ?? default_expression);
                                                 break;
                                             }
 
                                         case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
                                             {
+                                                var mainParam = FindParameter(control.parameter?.name);
+                                                var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
+
                                                 var horizontal = FindParameter(control.subParameters[0]?.name);
                                                 var vertical = FindParameter(control.subParameters[1]?.name);
-                                                FourAxisControl(control, (value) =>
-                                                {
-                                                    horizontal.SetFloatProperty(value.x);
-                                                    vertical.SetFloatProperty(value.y);
-                                                });
+                                                FourAxisControl(
+                                                    control,
+                                                    (value) =>
+                                                    {
+                                                        var x = float.IsNaN(value.x) ? 0f : value.x;
+                                                        var y = float.IsNaN(value.y) ? 0f : value.y;
+                                                        horizontal.SetFloatProperty(x);
+                                                        vertical.SetFloatProperty(y);
+                                                    },
+                                                    onOpen: () => mainParam?.SetValue(control.value),
+                                                    onClose: () => mainParam.SetValue(default_value));
                                                 break;
                                             }
 
                                         case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
                                             {
+                                                var mainParam = FindParameter(control.parameter?.name);
+                                                var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
+
                                                 var up = FindParameter(control.subParameters[0]?.name);
                                                 var down = FindParameter(control.subParameters[1]?.name);
                                                 var left = FindParameter(control.subParameters[2]?.name);
                                                 var right = FindParameter(control.subParameters[3]?.name);
-                                                FourAxisControl(control, (value) =>
-                                                {
-                                                    up.SetFloatProperty(Math.Max(0, value.y));
-                                                    down.SetFloatProperty(-Math.Min(0, value.y));
-                                                    left.SetFloatProperty(Math.Max(0, value.x));
-                                                    right.SetFloatProperty(-Math.Min(0, value.x));
-                                                });
+                                                FourAxisControl(
+                                                    control,
+                                                    (value) =>
+                                                    {
+                                                        var x = float.IsNaN(value.x) ? 0f : value.x;
+                                                        var y = float.IsNaN(value.y) ? 0f : value.y;
+                                                        up.SetFloatProperty(Math.Max(0, y));
+                                                        down.SetFloatProperty(-Math.Min(0, y));
+                                                        left.SetFloatProperty(Math.Max(0, x));
+                                                        right.SetFloatProperty(-Math.Min(0, x));
+                                                    },
+                                                    onOpen: () => mainParam?.SetValue(control.value),
+                                                    onClose: () => mainParam.SetValue(default_value));
                                                 break;
                                             }
 
                                         case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
                                             {
-                                                var param = FindParameter(control.subParameters[0]?.name);
-                                                CustomSubMenu.AddRestrictedRadialPuppet(control.TruncatedName(), param.SetValue, startingValue: param.GetValue(), icon: control.icon ?? default_expression);
+                                                var mainParam = FindParameter(control.parameter?.name);
+                                                var default_value = avatar_descriptor.expressionParameters.FindParameter(control.parameter.name)?.defaultValue ?? 0f;
+
+                                                var subParam = FindParameter(control.subParameters[0]?.name);
+                                                menu.AddRestrictedRadialPuppet(
+                                                    control.TruncatedName(), subParam.SetValue,
+                                                    onOpen: () => mainParam?.SetValue(control.value),
+                                                    onClose: () => mainParam.SetValue(default_value),
+                                                    startingValue: subParam.GetValue(),
+                                                    icon: control.icon ?? default_expression);
                                                 break;
                                             }
                                     }
@@ -342,7 +373,7 @@ namespace WorldCleanup
         private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor)
         {
             var manager = player._vrcplayer.GetVRCAvatarManager();
-            var player_name = player._vrcplayer.prop_String_1;
+            var player_name = player._vrcplayer.prop_String_0;
             if (player_name == null) return;
             s_PlayerList[player_name] = avatar;
 
@@ -411,40 +442,6 @@ namespace WorldCleanup
                     /* Disable camera again */
                     s_PreviewCaptureCamera.SetActive(false);
                 }
-            }
-        }
-
-        public override void OnGUI()
-        {
-            return;
-
-            var noop = new GUILayoutOption[] {};
-            if (GUILayout.Button("Press Me", noop))
-                MelonLogger.Msg("Hello!");
-
-            var player = Networking.LocalPlayer;
-
-            if (player != null) {
-
-                void FloatSlider(string name, float min, float max, Action<float> set_value, Func<float> get_value) {
-                    GUILayout.BeginHorizontal("Opt", noop);
-                    GUILayout.Label(name, noop);
-                    var prev = get_value();
-                    var value = GUILayout.TextField(prev.ToString(), noop);
-                    var val_float = float.Parse(value);
-                    if (prev != val_float) {
-                        set_value(val_float);
-                    }
-                    GUILayout.EndHorizontal();
-                }
-
-                GUILayout.Label("Player Mods", noop);
-
-                FloatSlider("Jump Impulse", 0.0f, 30.0f, player.SetJumpImpulse, player.GetJumpImpulse);
-                FloatSlider("Run Speed", 0.0f, 10.0f, player.SetRunSpeed, player.GetRunSpeed);
-                FloatSlider("Walk Speed", 0.0f, 10.0f, player.SetWalkSpeed, player.GetWalkSpeed);
-                FloatSlider("Strafe Speed", 0.0f, 10.0f, player.SetStrafeSpeed, player.GetStrafeSpeed);
-                FloatSlider("Gravity Strength", 0.0f, 10.0f, player.SetGravityStrength, player.GetGravityStrength);
             }
         }
 
