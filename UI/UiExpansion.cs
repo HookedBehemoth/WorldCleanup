@@ -18,7 +18,7 @@ using System;
 using UnityEngine;
 // using UnityEngine.UI;
 // using UIExpansionKit.API;
-using UnhollowerRuntimeLib;
+using Il2CppInterop.Runtime.Injection;
 using WorldCleanup.UI;
 using MelonLoader;
 using System.Collections;

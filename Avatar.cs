@@ -21,9 +21,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
-using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace WorldCleanup
 {
@@ -146,7 +148,7 @@ namespace WorldCleanup
 
         public static IEnumerable<Renderer> GetAvatarRenderers(this VRCAvatarManager manager)
         {
-            return manager.field_Private_ArrayOf_Renderer_0;
+            return manager.field_Private_Il2CppReferenceArray_1_Renderer_0;
         }
 
         public static void ApplyParameters(VRCAvatarManager manager)
@@ -304,10 +306,12 @@ namespace WorldCleanup
             return s_ParameterOverrideList.Contains(parameter.Pointer);
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
         internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
 
-        internal static void BoolPropertySetter(IntPtr @this, bool value)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        internal static void BoolPropertySetter(IntPtr @this, sbyte value)
         {
             /* Block manually overwritten parameters */
             var param = new AvatarParameterAccess(@this);
@@ -315,12 +319,14 @@ namespace WorldCleanup
                 return;
 
             /* Invoke original function pointer */
-            _boolPropertySetterDelegate(@this, value);
+            _boolPropertySetterDelegate(@this, value != 0);
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void IntPropertySetterDelegate(IntPtr @this, int value);
         internal static IntPropertySetterDelegate _intPropertySetterDelegate;
 
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         internal static void IntPropertySetter(IntPtr @this, int value)
         {
             /* Block manually overwritten parameters */
@@ -332,9 +338,11 @@ namespace WorldCleanup
             _intPropertySetterDelegate(@this, value);
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void FloatPropertySetterDelegate(IntPtr @this, float value);
         internal static FloatPropertySetterDelegate _floatPropertySetterDelegate;
 
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         internal static void FloatPropertySetter(IntPtr @this, float value)
         {
             /* Block manually overwritten parameters */

@@ -8,20 +8,42 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <LangVersion>latest</LangVersion>
 
-        <AssemblySearchPaths>
+        <!-- <AssemblySearchPaths>
             $(AssemblySearchPaths);
             $(VRChatPath)\Mods;
             $(VRChatPath)\UserLibs;
             $(VRChatPath)\MelonLoader;
-            $(VRChatPath)\MelonLoader\Managed;</AssemblySearchPaths>
+            $(VRChatPath)\MelonLoader\Managed;</AssemblySearchPaths> -->
+    <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
+      {CandidateAssemblyFiles};
+      $(ReferencePath);
+      {HintPathFromItem};
+      {TargetFrameworkDirectory};
+      $(AssemblyFoldersConfigFileSearchPath)
+      {Registry:$(FrameworkRegistryBase),$(TargetFrameworkVersion),$(AssemblyFoldersSuffix)$(AssemblyFoldersExConditions)};
+      {AssemblyFolders};
+      {GAC};
+      {RawFileName};
+        $(AssemblySearchPaths);
+        $(VRChatPath)\Mods;
+        $(VRChatPath)\MelonLoader\Managed;
+        $(VRChatPath)\MelonLoader\Il2CppAssemblies;
+        $(VRChatPath)\MelonLoader\net6;
+        $(VRChatPath)\MelonLoader\SupportModules;
+      $(OutDir)
+    </AssemblySearchPaths>
     </PropertyGroup>
 
     <ItemGroup>
         <Reference Include="System"/>
         <Reference Include="MelonLoader">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="MelonLoader.NativeHost">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
@@ -51,11 +73,19 @@
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="UnhollowerBaseLib">
+        <Reference Include="Il2Cpp">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="UnhollowerRuntimeLib">
+        <Reference Include="Il2CppInterop.Common">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="Il2CppInterop.Runtime">
+            <Private>False</Private>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="Il2CppInterop.HarmonySupport">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
@@ -64,31 +94,31 @@
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRC.Udon">
+        <Reference Include="Il2CppVRC.Udon">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCSDKBase">
+        <Reference Include="Il2CppVRCSDKBase">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCSDK2">
+        <Reference Include="Il2CppVRCSDK2">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCSDK3">
+        <Reference Include="Il2CppVRCSDK3">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCSDK3A">
+        <Reference Include="Il2CppVRCSDK3A">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCCore-Standalone">
+        <Reference Include="Il2CppVRCCore-Standalone">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
-        <Reference Include="VRCCore-Editor">
+        <Reference Include="Il2CppVRCCore-Editor">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>

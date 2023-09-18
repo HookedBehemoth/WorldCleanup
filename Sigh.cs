@@ -18,7 +18,8 @@
 /* Note: While loading a 400KiB string isn't really a    */
 /*       problem, trying to render that to a texture is. */
 
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using Il2CppVRC.SDK3.Avatars.ScriptableObjects;
 
 namespace WorldCleanup
 {
@@ -31,16 +32,16 @@ namespace WorldCleanup
             return value;
         }
 
-        public static string TrucatedName(this VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionParameters.Parameter param)
+        public static string TrucatedName(this VRCExpressionParameters.Parameter param)
             => param.name?.Truncate(32);
 
-        public static string TruncatedName(this VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control control)
+        public static string TruncatedName(this VRCExpressionsMenu.Control control)
             => control.name?.Truncate(32);
 
-        public static string TruncatedName(this VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control.Parameter param)
+        public static string TruncatedName(this VRCExpressionsMenu.Control.Parameter param)
             => param.name?.Truncate(32);
 
-        public static string TruncatedName(this VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control.Label label)
+        public static string TruncatedName(this VRCExpressionsMenu.Control.Label label)
             => label.name?.Truncate(32);
 
         public static string TruncatedName(this AvatarParameterAccess param)

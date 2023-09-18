@@ -15,7 +15,8 @@
  */
 
 using System;
-using UnhollowerBaseLib.Attributes;
+using Il2CppInterop.Runtime.Attributes;
+using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 
 namespace UIExpansionKit.Components
@@ -36,7 +37,7 @@ namespace UIExpansionKit.Components
         }
 
         public static void Register() {
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<DestroyListener>();
+            ClassInjector.RegisterTypeInIl2Cpp<DestroyListener>();
         }
     }
 }

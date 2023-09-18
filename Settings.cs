@@ -15,6 +15,7 @@
  */
 
 using MelonLoader;
+using MelonLoader.Utils;
 using System.IO;
 
 namespace WorldCleanup {
@@ -63,12 +64,12 @@ namespace WorldCleanup {
         public static MelonPreferences_Entry<float> s_UpdateInterval;
 
         public static void StoreConfigFile(string file_name, string data) {
-            var file_path = Path.Combine(MelonUtils.UserDataDirectory, file_name);
+            var file_path = Path.Combine(MelonEnvironment.UserDataDirectory, file_name);
             File.WriteAllText(file_path, data);
         }
 
         public static string LoadConfigFile(string file_name) {
-            var file_path = Path.Combine(MelonUtils.UserDataDirectory, file_name);
+            var file_path = Path.Combine(MelonEnvironment.UserDataDirectory, file_name);
             return File.ReadAllText(file_path);
         }
     }

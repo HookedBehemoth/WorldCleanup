@@ -21,21 +21,23 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using MelonLoader;
+using MelonLoader.NativeUtils;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
-using VRC;
-using VRC.SDK3.Avatars.ScriptableObjects;
-using VRC.SDKBase;
+using Il2CppVRC;
+using Il2CppVRC.SDK3.Avatars.ScriptableObjects;
+using Il2CppVRC.SDKBase;
 using ActionMenuApi.Api;
 
 using static Polyfill;
 
-using VRCAvatarManager = MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
 // using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
-using AvatarParameterType = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
-using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
-using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using Player = Il2Cpp.MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
+using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using System.Diagnostics;
 
 [assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]
@@ -73,17 +75,23 @@ namespace WorldCleanup
             /* Hook into setter for parameter properties */
             unsafe
             {
-                var param_prop_bool_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_boolVal_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                MelonUtils.NativeHookAttach(param_prop_bool_set, new Action<IntPtr, bool>(Parameters.BoolPropertySetter).Method.MethodHandle.GetFunctionPointer());
-                Parameters._boolPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.BoolPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_bool_set);
+                var bool_target = *(IntPtr*)(IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_boolVal_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                delegate* unmanaged[Cdecl]<IntPtr, sbyte, void> bool_detour = &Parameters.BoolPropertySetter;
+                var bool_hook = new NativeHook<Parameters.BoolPropertySetterDelegate>(bool_target, (IntPtr)bool_detour);
+                bool_hook.Attach();
+                Parameters._boolPropertySetterDelegate = bool_hook.Trampoline;
 
-                var param_prop_int_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_intVal_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                MelonUtils.NativeHookAttach(param_prop_int_set, new Action<IntPtr, int>(Parameters.IntPropertySetter).Method.MethodHandle.GetFunctionPointer());
-                Parameters._intPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.IntPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_int_set);
+                var int_target = *(IntPtr*)(IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_intVal_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                delegate* unmanaged[Cdecl]<IntPtr, int, void> int_detour = &Parameters.IntPropertySetter;
+                var int_hook = new NativeHook<Parameters.IntPropertySetterDelegate>(int_target, (IntPtr)int_detour);
+                int_hook.Attach();
+                Parameters._intPropertySetterDelegate = int_hook.Trampoline;
 
-                var param_prop_float_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_floatVal_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(Parameters.FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
-                Parameters._floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<Parameters.FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
+                var float_target = *(IntPtr*)(IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_floatVal_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                delegate* unmanaged[Cdecl]<IntPtr, float, void> float_detour = &Parameters.FloatPropertySetter;
+                var float_hook = new NativeHook<Parameters.FloatPropertySetterDelegate>(float_target, (IntPtr)float_detour);
+                float_hook.Attach();
+                Parameters._floatPropertySetterDelegate = float_hook.Trampoline;
             }
 
             AMUtils.AddToModsFolder("Player Toggles", () =>
@@ -108,12 +116,12 @@ namespace WorldCleanup
                     if (!manager.HasCustomExpressions())
                         continue;
 
-                    var avatar_id = entry.Value.GetComponent<VRC.Core.PipelineManager>().blueprintId;
+                    var avatar_id = entry.Value.GetComponent<Il2CppVRC.Core.PipelineManager>().blueprintId;
                     var user_icon = s_Portraits[avatar_id].Get();
 
                     /* Source default expression icon */
                     /* TODO: add endpoint to ActionMenuApi for that */
-                    var menu_icons = MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique.field_Public_Static_MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique_0.field_Public_MenuIcons_0;
+                    var menu_icons = Il2Cpp.MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique.field_Public_Static_MonoBehaviourPublicObGaObAc1ObAcBoCoObUnique_0.field_Public_MenuIcons_0;
                     var default_expression = menu_icons.defaultExpression;
 
                     CustomSubMenu.AddSubMenu(entry.Key, () =>
@@ -256,7 +264,7 @@ namespace WorldCleanup
                 }
             });
 
-            MelonLogger.Msg(ConsoleColor.Green, "WorldCleanup ready!");
+            MelonLogger.Msg(System.ConsoleColor.Green, "WorldCleanup ready!");
         }
 
         public override void OnApplicationQuit()
@@ -342,7 +350,7 @@ namespace WorldCleanup
 
             Parameters.ApplyParameters(manager);
 
-            var avatar_id = avatar.GetComponent<VRC.Core.PipelineManager>().blueprintId;
+            var avatar_id = avatar.GetComponent<Il2CppVRC.Core.PipelineManager>().blueprintId;
 
             MelonLogger.Msg($"Avatar ID: {avatar_id}");
 
