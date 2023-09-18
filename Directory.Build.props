@@ -11,39 +11,17 @@
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>latest</LangVersion>
 
-        <!-- <AssemblySearchPaths>
-            $(AssemblySearchPaths);
-            $(VRChatPath)\Mods;
-            $(VRChatPath)\UserLibs;
-            $(VRChatPath)\MelonLoader;
-            $(VRChatPath)\MelonLoader\Managed;</AssemblySearchPaths> -->
-    <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
-      {CandidateAssemblyFiles};
-      $(ReferencePath);
-      {HintPathFromItem};
-      {TargetFrameworkDirectory};
-      $(AssemblyFoldersConfigFileSearchPath)
-      {Registry:$(FrameworkRegistryBase),$(TargetFrameworkVersion),$(AssemblyFoldersSuffix)$(AssemblyFoldersExConditions)};
-      {AssemblyFolders};
-      {GAC};
-      {RawFileName};
-        $(AssemblySearchPaths);
-        $(VRChatPath)\Mods;
-        $(VRChatPath)\MelonLoader\Managed;
-        $(VRChatPath)\MelonLoader\Il2CppAssemblies;
-        $(VRChatPath)\MelonLoader\net6;
-        $(VRChatPath)\MelonLoader\SupportModules;
-      $(OutDir)
-    </AssemblySearchPaths>
+        <AssemblySearchPaths>
+            {RawFileName};
+            $(VRChatPath)/MelonLoader/net6;
+            $(VRChatPath)/MelonLoader/Il2CppAssemblies;
+            $(VRChatPath)/Mods;
+            $(VRChatPath)/MelonLoader/Managed
+        </AssemblySearchPaths>
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="System"/>
         <Reference Include="MelonLoader">
-            <Private>False</Private>
-            <SpecificVersion>False</SpecificVersion>
-        </Reference>
-        <Reference Include="MelonLoader.NativeHost">
             <Private>False</Private>
             <SpecificVersion>False</SpecificVersion>
         </Reference>
