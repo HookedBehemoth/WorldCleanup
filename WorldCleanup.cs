@@ -377,13 +377,9 @@ namespace WorldCleanup
             if (player_name == null) return;
             s_PlayerList[player_name] = avatar;
 
-            MelonLogger.Msg($"Avatar Instantiated for: {player_name}");
-
             Parameters.ApplyParameters(manager);
 
             var avatar_id = avatar.GetComponent<Il2CppVRC.Core.PipelineManager>().blueprintId;
-
-            MelonLogger.Msg($"Avatar ID: {avatar_id}");
 
             var destroy_listener = avatar.AddComponent<UIExpansionKit.Components.DestroyListener>();
             var parameters = manager.GetAvatarParameters().ToArray();
