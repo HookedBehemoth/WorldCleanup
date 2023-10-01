@@ -298,6 +298,11 @@ namespace WorldCleanup
             MelonLogger.Msg(System.ConsoleColor.Green, "WorldCleanup ready!");
         }
 
+        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
+        {
+            Parameters.FlushConfig();
+        }
+
         public override void OnApplicationQuit()
         {
             /* Flush avatar parameters */
