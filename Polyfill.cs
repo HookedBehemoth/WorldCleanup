@@ -21,7 +21,7 @@ using Il2CppVRC.SDKBase;
 
 using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
 using Player = Il2Cpp.MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
-using VRCPlayer = Il2Cpp.MonoBehaviour1PublicOb_pObBo_pGaStObTeSiUnique;
+using VRCPlayer = Il2Cpp.MonoBehaviour1PublicOb_pObGa_pStTeObBoSiUnique;
 using AvatarPlayableController = Il2Cpp.MonoBehaviour1PublicAcBoAcHaBo1AcInFu2Unique;
 using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
