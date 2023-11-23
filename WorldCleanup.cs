@@ -15,29 +15,17 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using MelonLoader;
 using MelonLoader.NativeUtils;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
-using Il2CppVRC;
 using Il2CppVRC.SDK3.Avatars.ScriptableObjects;
 using Il2CppVRC.SDKBase;
 using ActionMenuApi.Api;
-
-using static Polyfill;
-
-using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-// using AvatarParameter = MonoBehaviour1PublicInBySiByObAnPlDiAnInUnique.ObjectNPublicInObInPaSiInInUnique;
-using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
-using Player = Il2Cpp.MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
-using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
-using System.Diagnostics;
 
 [assembly: MelonInfo(typeof(WorldCleanup.WorldCleanupMod), "WorldCleanup", "1.1.2", "Behemoth")]
 [assembly: MelonGame("VRChat", "VRChat")]

@@ -21,9 +21,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
-using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
-using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 

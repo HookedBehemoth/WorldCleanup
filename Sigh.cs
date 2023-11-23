@@ -18,7 +18,6 @@
 /* Note: While loading a 400KiB string isn't really a    */
 /*       problem, trying to render that to a texture is. */
 
-using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 using Il2CppVRC.SDK3.Avatars.ScriptableObjects;
 
 namespace WorldCleanup
