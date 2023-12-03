@@ -56,6 +56,7 @@ namespace WorldCleanup
             "VRCEmote",
             "VRCFaceBlendH",
             "VRCFaceBlendV",
+            "IsOnFriendsList",
         };
 
         public static List<AvatarParameterAccess> FilterDefaultParameters(IEnumerable<AvatarParameterAccess> src)
@@ -176,7 +177,8 @@ namespace WorldCleanup
             /* Apply parameters */
             if (config.parameters != null)
                 foreach (var parameter in manager.GetAvatarParameters())
-                    config.parameters[parameter.field_Protected_String_0].Apply(parameter);
+                    if (config.parameters.TryGetValue(parameter.field_Protected_String_0, out var configParam))
+                        configParam.Apply(parameter);
 
             /* Apply Meshes */
             if (config.renderers != null)
