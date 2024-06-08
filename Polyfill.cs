@@ -14,9 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-global using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique;
+global using VRCAvatarManager = Il2Cpp.MonoBehaviourPublicINetworkReadyReceiverSiGaObGaStObBoGaLiBoUnique;
 global using Player = Il2Cpp.MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
-global using VRCPlayer = Il2Cpp.MonoBehaviour1PublicOb_pObBo_pGaStObTeSiUnique;
+global using VRCPlayer = Il2Cpp.MonoBehaviour1PublicOb_pOb_s_pBoGaOb_pStUnique;
 global using AvatarPlayableController = Il2Cpp.MonoBehaviour1PublicAcBoAcHaBo1AcInFu2Unique;
 global using AvatarParameterAccess = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 global using AvatarParameterType = Il2Cpp.ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
@@ -34,7 +34,7 @@ public static class Polyfill {
     }
 
     public static VRCAvatarManager GetVRCAvatarManager(this VRCPlayer _this) {
-        return _this.prop_MonoBehaviourPublicSiGaObGaStObBoGaLiBoUnique_0;
+        return _this.prop_MonoBehaviourPublicINetworkReadyReceiverSiGaObGaStObBoGaLiBoUnique_0;
     }
 
     public static AvatarPlayableController GetAvatarPlayableController(this VRCAvatarManager _this) {

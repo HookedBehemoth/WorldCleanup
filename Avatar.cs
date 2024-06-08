@@ -149,7 +149,7 @@ namespace WorldCleanup
 
         public static IEnumerable<Renderer> GetAvatarRenderers(this VRCAvatarManager manager)
         {
-            return manager.field_Private_Il2CppReferenceArray_1_Renderer_0;
+            return manager.field_Private_List_1_Renderer_0._items;
         }
 
         public static void ApplyParameters(VRCAvatarManager manager)
